@@ -7,29 +7,34 @@
     <title>AI Work Agent · 分时电价观察站能力验证</title>
     <link rel="stylesheet" href="01_workbuddy/css/style.css">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg-body); color: var(--text-primary); line-height: 1.5; display: flex; flex-direction: column; }
         .portal-hero {
             background: linear-gradient(135deg, #0A1628 0%, #1A2A4A 50%, #0D2137 100%);
-            color: #fff; padding: 56px 0 44px; text-align: center; position: relative; overflow: hidden;
+            color: #fff; padding: 14px 0 16px; text-align: center; position: relative; overflow: hidden;
         }
         .portal-hero::before {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: radial-gradient(ellipse at 30% 50%, rgba(0,167,203,0.08) 0%, transparent 70%);
         }
         .portal-hero-content { position: relative; z-index: 1; }
-        .portal-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
-        .portal-hero p { color: rgba(255,255,255,0.7); font-size: 1rem; max-width: 640px; margin: 0 auto; line-height: 1.6; }
-        .portal-hero .badge-row { margin-top: 16px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .portal-hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+        .portal-hero p { color: rgba(255,255,255,0.7); font-size: 0.85rem; max-width: 640px; margin: 2px auto 0; line-height: 1.5; }
+        .portal-hero .badge-row { margin-top: 10px; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
         .portal-hero .badge-row span {
             background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-            padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; color: rgba(255,255,255,0.6);
+            padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.6);
         }
 
-        .portal-section { padding: 48px 0; }
+        .portal-section { padding: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
         .portal-desc { text-align: center; margin-bottom: 36px; }
         .portal-desc h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
         .portal-desc p { color: var(--text-secondary); font-size: 0.9rem; }
 
-        .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+        .agent-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
+        @media (max-width: 900px) { .agent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
+        @media (max-width: 600px) { .agent-grid { grid-template-columns: 1fr; gap: 12px; } }
         .agent-card {
             background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
             padding: 0; overflow: hidden; transition: all 0.25s; display: block;
@@ -62,41 +67,41 @@
         .agent-card.disabled { opacity: 0.5; cursor: default; }
         .agent-card.disabled:hover { transform: none; box-shadow: none; }
 
-        .prd-card {
-            background: var(--primary-light); border: 1px solid var(--primary); border-radius: var(--radius);
-            padding: 20px 28px; max-width: 700px; margin: 0 auto; text-align: center;
+        /* 三类 Agent 切换标签 */
+        .category-tabs {
+            display: flex; justify-content: center; gap: 6px;
+            margin-bottom: 24px; padding: 5px;
+            background: var(--bg-alt); border-radius: 28px;
+            max-width: 380px; margin: 0 auto 24px;
         }
-        .prd-card h3 { font-size: 1rem; color: var(--primary-dark); margin-bottom: 8px; }
-        .prd-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
-
-        /* 导航条 — 层级位置指引 */
-        .nav-breadcrumb {
-            background: rgba(0,0,0,0.3); padding: 8px 0;
-            position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+        .cat-tab {
+            padding: 7px 22px; border: none; border-radius: 22px;
+            background: transparent; color: var(--text-secondary);
+            font-size: 0.88rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
         }
-        .nav-breadcrumb .container {
-            font-size: 0.78rem; color: rgba(255,255,255,0.5);
+        .cat-tab.active {
+            background: #fff; color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,167,203,0.15);
         }
-        .nav-breadcrumb a { color: rgba(255,255,255,0.7); }
-        .nav-breadcrumb a:hover { color: #fff; }
+        .cat-tab.active:hover { transform: none; }
+        .cat-tab:disabled, .cat-tab.disabled {
+            color: var(--text-secondary); opacity: 0.75; cursor: not-allowed;
+        }
+        .cat-panel { display: none; }
+        .cat-panel.active { display: block; }
 
         @media (max-width: 768px) {
             .portal-hero h1 { font-size: 1.4rem; }
-            .agent-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
     <section class="portal-hero">
-        <div class="nav-breadcrumb">
-            <div class="container">
-                <span>🏠 AI Work Agent 对比总览</span>
-            </div>
-        </div>
-        <div class="container portal-hero-content" style="padding-top:16px;">
+        <div class="container portal-hero-content">
             <h1>🤖 AI Work Agent · 能力验证</h1>
-            <p>五款 AI Work Agent 基于同一份 PRD 需求文档，各自独立搭建</p>
+            <p>基于同一份 PRD 需求文档、不同 AI Work Agent 独立搭建</p>
             <p style="font-size:0.9rem;margin-top:4px;">"城市分时电价观察站"MVP 对比展示</p>
             <div class="badge-row">
                 <span>📋 同一份 PRD</span>
@@ -107,23 +112,14 @@
         </div>
     </section>
 
-    <section class="portal-section" style="padding-bottom:16px;">
-        <div class="container">
-            <div class="prd-card">
-                <h3>📄 统一输入：城市分时电价观察站_MVP需求文档.pdf</h3>
-                <p>各 Agent 基于同一份 PRD 进行数据检索、数据库建模、网站搭建和交付说明；模型配置、积分消耗和资源限制按实测情况单独记录。
-                各 Agent 可自行决定技术栈和设计风格，观察不同 AI 对数据产品形态的理解差异。</p>
-            </div>
-        </div>
-    </section>
-
     <section class="portal-section">
         <div class="container">
-            <div class="portal-desc">
-                <h2>五款 Agent 成果</h2>
-                <p>点击卡片进入各 Agent 搭建的 MVP</p>
+            <div class="category-tabs">
+                <button class="cat-tab active" data-cat="domestic">国内商业</button>
+                <button class="cat-tab disabled" disabled>国外商业</button>
+                <button class="cat-tab disabled" disabled>开源</button>
             </div>
-
+            <div class="cat-panel active" id="panel-domestic">
             <div class="agent-grid">
 
                 <!-- WorkBuddy -->
@@ -184,7 +180,7 @@
                         <div class="agent-icon qoder">Q</div>
                         <div>
                             <div class="agent-name">QoderWork</div>
-                            <div class="agent-by">Qoder · 当时可用配置</div>
+                            <div class="agent-by">Qoder · Deepseek-v4-flash</div>
                         </div>
                     </div>
                     <div class="agent-card-body">
@@ -251,13 +247,15 @@
                 </a>
 
             </div>
+            </div>
+            </div>
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="container">
-            <p>AI Work Agent 能力验证 · 城市分时电价观察站 · 2026</p>
-            <p style="margin-top:4px;">WorkBuddy 版本已上线 · 其他 Agent 版本陆续添加</p>
+    <footer style="padding:12px 0;border-top:1px solid var(--border);background:var(--bg-body);">
+        <div class="container" style="text-align:center;">
+            <p style="font-size:0.72rem;color:var(--text-muted);">AI Work Agent 能力验证 · 城市分时电价观察站 · 2026</p>
+            <p style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">国内商业 Agent 已上线 · 国外商业 / 开源 Agent 待补</p>
         </div>
     </footer>
 
