@@ -1,0 +1,18 @@
+{
+  "appName": "城市分时电价观察站",
+  "version": "1.0.0",
+  "dataSource": "sqlite",
+  "dataSourceOptions": {
+    "csv": {
+      "basePath": "data/csv/",
+      "encoding": "UTF-8"
+    },
+    "sqlite": {
+      "dbPath": "data/electricity_price.db",
+      "apiBaseUrl": "http://localhost:3456/api"
+    }
+  },
+  "provinces": ["广东", "江苏", "山东", "浙江", "内蒙古"],
+  "lastUpdated": "2026-07-25",
+  "description": "本配置文件用于切换数据源模式。将 dataSource 改为 'sqlite' 并启动后端服务即可切换为 SQLite 模式。"
+}

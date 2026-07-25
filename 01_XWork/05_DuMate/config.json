@@ -1,0 +1,17 @@
+{
+  "dataSource": "sqlite",
+  "sqlite": {
+    "dbPath": "./database/electricity_pricing.db",
+    "serverPort": 3000,
+    "serverScript": "./server/sqlite_server.py"
+  },
+  "csv": {
+    "dataPath": "./data/",
+    "files": {
+      "provinces": "provinces.csv",
+      "sources": "sources.csv",
+      "pricePolicies": "price_policies.csv",
+      "missingData": "missing_data.csv"
+    }
+  }
+}

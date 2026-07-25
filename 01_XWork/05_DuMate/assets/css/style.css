@@ -1,0 +1,710 @@
+/* ============================================================
+   城市分时电价观察站 - 主样式表
+   设计理念: 简约、亮眼、数据查询友好
+   ============================================================ */
+
+:root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #EFF6FF;
+    --accent: #F59E0B;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --info: #06B6D4;
+    
+    --bg-base: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --bg-alt: #F1F5F9;
+    --bg-dark: #0F172A;
+    
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+    --text-inverse: #FFFFFF;
+    
+    --border: #E2E8F0;
+    --border-dark: #CBD5E1;
+    
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    
+    --peak-color: #EF4444;
+    --sharp-peak-color: #DC2626;
+    --flat-color: #64748B;
+    --valley-color: #2563EB;
+    --deep-valley-color: #1D4ED8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ============================================================
+   导航栏
+   ============================================================ */
+.navbar {
+    background: var(--bg-dark);
+    color: var(--text-inverse);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-md);
+}
+
+.navbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-inverse);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.navbar-brand .logo {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #2563EB, #06B6D4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+}
+
+.navbar-links a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.navbar-links a:hover {
+    color: var(--text-inverse);
+    background: rgba(255,255,255,0.08);
+}
+
+.navbar-links a.active {
+    color: var(--text-inverse);
+    background: rgba(255,255,255,0.12);
+}
+
+.navbar-back {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.navbar-back:hover {
+    color: var(--text-inverse);
+    border-color: rgba(255,255,255,0.3);
+}
+
+/* ============================================================
+   首页 Hero
+   ============================================================ */
+.hero {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+    color: var(--text-inverse);
+    padding: 48px 0 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.hero p {
+    color: rgba(255,255,255,0.7);
+    font-size: 1rem;
+    max-width: 640px;
+}
+
+/* 统计卡片 */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-inverse);
+    line-height: 1;
+}
+
+.stat-card .stat-label {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.6);
+    margin-top: 8px;
+}
+
+.stat-card .stat-sub {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+}
+
+/* ============================================================
+   通用 Section
+   ============================================================ */
+.section {
+    padding: 48px 0;
+}
+
+.section-header {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.section-desc {
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+}
+
+/* ============================================================
+   省份对比表
+   ============================================================ */
+.comparison-table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.comparison-table th {
+    background: var(--bg-alt);
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+}
+
+.comparison-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.comparison-table tr:last-child td {
+    border-bottom: none;
+}
+
+.comparison-table .province-name {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.comparison-table .price-cell {
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-weight: 600;
+}
+
+.price-sharp-peak { color: var(--sharp-peak-color); }
+.price-peak { color: var(--peak-color); }
+.price-flat { color: var(--flat-color); }
+.price-valley { color: var(--valley-color); }
+.price-deep-valley { color: var(--deep-valley-color); }
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.badge-real { background: rgba(16,185,129,0.12); color: var(--success); }
+.badge-missing { background: rgba(245,158,11,0.12); color: var(--warning); }
+.badge-na { background: var(--bg-alt); color: var(--text-muted); }
+
+/* ============================================================
+   分析结论卡片
+   ============================================================ */
+.insight-card {
+    background: linear-gradient(135deg, #EFF6FF 0%, #E0F2FE 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+}
+
+.insight-card .insight-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.insight-card .insight-text {
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.7;
+}
+
+/* ============================================================
+   筛选栏
+   ============================================================ */
+.filter-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    align-items: center;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.filter-select {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.filter-select:hover {
+    border-color: var(--primary);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+/* ============================================================
+   数据卡片网格
+   ============================================================ */
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.data-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: all 0.2s;
+}
+
+.data-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.data-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.data-card .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.data-card .card-region {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.period-list {
+    list-style: none;
+}
+
+.period-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+}
+
+.period-item:last-child {
+    border-bottom: none;
+}
+
+.period-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    min-width: 56px;
+    justify-content: center;
+}
+
+.tag-sharp-peak { background: rgba(220,38,38,0.1); color: #DC2626; }
+.tag-peak { background: rgba(239,68,68,0.1); color: #EF4444; }
+.tag-flat { background: rgba(100,116,139,0.1); color: #64748B; }
+.tag-valley { background: rgba(37,99,235,0.1); color: #2563EB; }
+.tag-deep-valley { background: rgba(29,78,216,0.1); color: #1D4ED8; }
+
+.period-time {
+    font-family: 'SF Mono', 'Consolas', monospace;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.period-price {
+    font-family: 'SF Mono', 'Consolas', monospace;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   来源追溯卡片
+   ============================================================ */
+.source-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+}
+
+.source-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.source-card .source-header {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.source-card .source-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.source-card .source-url {
+    display: inline-block;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.82rem;
+    margin-top: 8px;
+    word-break: break-all;
+}
+
+.source-card .source-url:hover {
+    text-decoration: underline;
+}
+
+.source-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.source-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ============================================================
+   缺失数据说明
+   ============================================================ */
+.missing-card {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 12px;
+}
+
+.missing-card .missing-field {
+    font-weight: 600;
+    color: #92400E;
+    font-size: 0.92rem;
+}
+
+.missing-card .missing-reason {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    margin-top: 6px;
+}
+
+.missing-card .missing-next {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 6px;
+}
+
+/* ============================================================
+   页面切换
+   ============================================================ */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* ============================================================
+   图表区域
+   ============================================================ */
+.chart-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+}
+
+.chart-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.chart-desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+canvas {
+    max-width: 100%;
+}
+
+/* ============================================================
+   方法说明
+   ============================================================ */
+.method-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+}
+
+.method-card h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--primary);
+}
+
+.method-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+.method-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.method-card li {
+    padding: 6px 0;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    padding-left: 20px;
+    position: relative;
+}
+
+.method-card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 14px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer {
+    background: var(--bg-dark);
+    color: rgba(255,255,255,0.5);
+    padding: 32px 0;
+    text-align: center;
+    font-size: 0.82rem;
+    margin-top: 48px;
+}
+
+.footer a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: var(--text-inverse);
+}
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width: 768px) {
+    .hero h1 { font-size: 1.4rem; }
+    .navbar-links { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .data-grid { grid-template-columns: 1fr; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+}
+
+/* ============================================================
+   加载状态
+   ============================================================ */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   Toast 提示
+   ============================================================ */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-dark);
+    color: var(--text-inverse);
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.88rem;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}

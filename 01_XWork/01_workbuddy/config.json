@@ -1,0 +1,22 @@
+{
+    "selected": "csv",
+
+    "_": "★ 数据源切换：修改上方 selected 字段，可选 'csv' 或 'sqlite' ★",
+
+    "csv": {
+        "dataDir": "data/csv/"
+    },
+
+    "sqlite": {
+        "dbPath": "data/electricity_pricing.db",
+        "apiBaseUrl": "http://localhost:5000/api"
+    },
+
+    "site": {
+        "name": "城市分时电价观察站",
+        "version": "1.0.0",
+        "encoding": "UTF-8",
+        "sample_provinces": ["广东省", "江苏省", "山东省", "浙江省", "内蒙古自治区"],
+        "last_updated": "2025-07-25"
+    }
+}

@@ -1,0 +1,37 @@
+{
+    "_comment": "城市分时电价观察站 - 数据源配置文件",
+    "version": "1.0.0",
+    "last_updated": "2026-07-25",
+
+    "dataSource": "sqlite",
+
+    "csv": {
+        "basePath": "data/",
+        "encoding": "UTF-8",
+        "files": {
+            "prices": {
+                "guangdong": "guangdong.csv",
+                "jiangsu": "jiangsu.csv",
+                "shandong": "shandong.csv",
+                "zhejiang": "zhejiang.csv",
+                "innermongolia": "innermongolia.csv"
+            },
+            "sources": "sources.csv",
+            "missing": "missing_data.csv"
+        }
+    },
+
+    "sqlite": {
+        "dbPath": "sql/electricity.db",
+        "initScript": "sql/init.sql",
+        "importScript": "import_csv.py"
+    },
+
+    "site": {
+        "title": "城市分时电价观察站",
+        "description": "Top 5 省份工商业分时电价对比与数据溯源",
+        "provinces": ["广东", "江苏", "山东", "浙江", "内蒙古"],
+        "defaultUserType": "一般工商业",
+        "defaultVoltageLevel": "1-10千伏"
+    }
+}

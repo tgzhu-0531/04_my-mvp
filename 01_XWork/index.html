@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>AI Work Agent · 分时电价观察站能力验证</title>
+    <link rel="stylesheet" href="01_workbuddy/css/style.css">
+    <style>
+        .portal-hero {
+            background: linear-gradient(135deg, #0A1628 0%, #1A2A4A 50%, #0D2137 100%);
+            color: #fff; padding: 56px 0 44px; text-align: center; position: relative; overflow: hidden;
+        }
+        .portal-hero::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(0,167,203,0.08) 0%, transparent 70%);
+        }
+        .portal-hero-content { position: relative; z-index: 1; }
+        .portal-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        .portal-hero p { color: rgba(255,255,255,0.7); font-size: 1rem; max-width: 640px; margin: 0 auto; line-height: 1.6; }
+        .portal-hero .badge-row { margin-top: 16px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .portal-hero .badge-row span {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+            padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; color: rgba(255,255,255,0.6);
+        }
+
+        .portal-section { padding: 48px 0; }
+        .portal-desc { text-align: center; margin-bottom: 36px; }
+        .portal-desc h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+        .portal-desc p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+        .agent-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 0; overflow: hidden; transition: all 0.25s; display: block;
+        }
+        .agent-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); border-color: var(--primary); }
+        .agent-card-header {
+            padding: 28px 24px 16px; display: flex; align-items: center; gap: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .agent-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; color: #fff; flex-shrink: 0; }
+        .agent-icon.wb { background: #00A7CB; }
+        .agent-icon.trae { background: #6366F1; }
+        .agent-icon.qoder { background: #10B981; }
+        .agent-icon.kimi { background: #F59E0B; }
+        .agent-icon.dumate { background: #EF4444; }
+        .agent-name { font-size: 1.15rem; font-weight: 700; }
+        .agent-by { font-size: 0.78rem; color: var(--text-muted); }
+        .agent-card-body { padding: 16px 24px 20px; }
+        .agent-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .agent-tag { font-size: 0.72rem; padding: 2px 10px; border-radius: 12px; background: var(--bg-alt); color: var(--text-secondary); }
+        .agent-tag.green { background: rgba(16,185,129,0.12); color: #10B981; }
+        .agent-tag.gray { background: var(--bg-alt); color: var(--text-muted); }
+        .agent-status { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; min-height: 48px; }
+        .agent-card-footer {
+            padding: 14px 24px; border-top: 1px solid var(--border);
+            font-size: 0.88rem; font-weight: 600; color: var(--primary);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .agent-card:hover .agent-card-footer { color: var(--primary-dark); }
+        .agent-card.disabled { opacity: 0.5; cursor: default; }
+        .agent-card.disabled:hover { transform: none; box-shadow: none; }
+
+        .prd-card {
+            background: var(--primary-light); border: 1px solid var(--primary); border-radius: var(--radius);
+            padding: 20px 28px; max-width: 700px; margin: 0 auto; text-align: center;
+        }
+        .prd-card h3 { font-size: 1rem; color: var(--primary-dark); margin-bottom: 8px; }
+        .prd-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+        /* 导航条 — 层级位置指引 */
+        .nav-breadcrumb {
+            background: rgba(0,0,0,0.3); padding: 8px 0;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+        }
+        .nav-breadcrumb .container {
+            font-size: 0.78rem; color: rgba(255,255,255,0.5);
+        }
+        .nav-breadcrumb a { color: rgba(255,255,255,0.7); }
+        .nav-breadcrumb a:hover { color: #fff; }
+
+        @media (max-width: 768px) {
+            .portal-hero h1 { font-size: 1.4rem; }
+            .agent-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="portal-hero">
+        <div class="nav-breadcrumb">
+            <div class="container">
+                <span>🏠 AI Work Agent 对比总览</span>
+            </div>
+        </div>
+        <div class="container portal-hero-content" style="padding-top:16px;">
+            <h1>🤖 AI Work Agent · 能力验证</h1>
+            <p>五款 AI Work Agent 基于同一份 PRD 需求文档，各自独立搭建</p>
+            <p style="font-size:0.9rem;margin-top:4px;">"城市分时电价观察站"MVP 对比展示</p>
+            <div class="badge-row">
+                <span>📋 同一份 PRD</span>
+                <span>📊 5 省电价数据</span>
+                <span>⚙️ 独立实现</span>
+                <span>🔗 来源可追溯</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="portal-section" style="padding-bottom:16px;">
+        <div class="container">
+            <div class="prd-card">
+                <h3>📄 统一输入：城市分时电价观察站_MVP需求文档.pdf</h3>
+                <p>各 Agent 基于同一份 PRD 进行数据检索、数据库建模、网站搭建和交付说明；模型配置、积分消耗和资源限制按实测情况单独记录。
+                各 Agent 可自行决定技术栈和设计风格，观察不同 AI 对数据产品形态的理解差异。</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="portal-section">
+        <div class="container">
+            <div class="portal-desc">
+                <h2>五款 Agent 成果</h2>
+                <p>点击卡片进入各 Agent 搭建的 MVP</p>
+            </div>
+
+            <div class="agent-grid">
+
+                <!-- WorkBuddy -->
+                <a href="01_workbuddy/workbuddy.html" class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-icon wb">W</div>
+                        <div>
+                            <div class="agent-name">WorkBuddy</div>
+                            <div class="agent-by">CodeBuddy · Deepseek-v4-flash</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag green">✅ 已部署</span>
+                            <span class="agent-tag">静态 SPA</span>
+                            <span class="agent-tag">Chart.js</span>
+                        </div>
+                        <div class="agent-status">
+                            纯静态 SPA 架构（Hash 路由）、CSV/SQLite 双数据源、
+                            5 省对比表 + 24h 叠图分析、可折叠分区、IIS/GitHub Pages 兼容。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer">
+                        <span>访问 WorkBuddy 版本</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <!-- TRAE Work -->
+                <a href="02_TraeWork/index.html" class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-icon trae">T</div>
+                        <div>
+                            <div class="agent-name">TRAE Work</div>
+                            <div class="agent-by">TRAE AI · Deepseek-v4-flash</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag green">✅ 已部署</span>
+                            <span class="agent-tag">CSV/SQLite 双模</span>
+                            <span class="agent-tag">Chart.js</span>
+                        </div>
+                        <div class="agent-status">
+                            5 省工商业分时电价对比、24h 叠图分析、价格对比表、数据源追溯、缺失数据说明。
+                            CSV 静态展示 / SQLite 后端验证双模式，配置驱动切换。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer">
+                        <span>访问 TRAE Work 版本</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <!-- QoderWork -->
+                <a href="03_QoderWork/index.html" class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-icon qoder">Q</div>
+                        <div>
+                            <div class="agent-name">QoderWork</div>
+                            <div class="agent-by">Qoder · 当时可用配置</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag green">✅ 已部署</span>
+                            <span class="agent-tag">CSV/SQLite 双模</span>
+                            <span class="agent-tag">Chart.js</span>
+                        </div>
+                        <div class="agent-status">
+                            5 省工商业分时电价数据（粤/苏/鲁/浙/蒙）、峰谷价差对比、省际柱状图分析、
+                            数据源追溯、缺失说明。CSV 静态展示 / SQLite 后端验证，配置驱动切换。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer">
+                        <span>访问 QoderWork 版本</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <!-- Kimi Work -->
+                <div class="agent-card disabled">
+                    <div class="agent-card-header">
+                        <div class="agent-icon kimi">K</div>
+                        <div>
+                            <div class="agent-name">Kimi Work</div>
+                            <div class="agent-by">Moonshot AI · K2.6 / K3（个人版受限）</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag gray">⏸ 未完成实测</span>
+                        </div>
+                        <div class="agent-status">
+                            个人版环境下多次资源排队 / 卡顿，本轮未完成实测，暂不纳入交付质量评分。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer" style="color:var(--text-muted);">暂不评分</div>
+                </div>
+
+                <!-- 百度搭子 DuMate -->
+                <a href="05_DuMate/index.html" class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-icon dumate">D</div>
+                        <div>
+                            <div class="agent-name">百度搭子 DuMate</div>
+                            <div class="agent-by">百度 · 模型未知 · v1.0.61</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag green">✅ 已部署</span>
+                            <span class="agent-tag">CSV/SQLite 双模</span>
+                            <span class="agent-tag">Chart.js</span>
+                        </div>
+                        <div class="agent-status">
+                            5省（粤/苏/鲁/浙/蒙）工商业分时电价对比、五段式分类柱状图、峰谷价差分析、
+                            数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer">
+                        <span>访问 DuMate 版本</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>AI Work Agent 能力验证 · 城市分时电价观察站 · 2026</p>
+            <p style="margin-top:4px;">WorkBuddy 版本已上线 · 其他 Agent 版本陆续添加</p>
+        </div>
+    </footer>
+
+</body>
+</html>

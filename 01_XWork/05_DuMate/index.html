@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>城市分时电价观察站 | 5省工商业分时电价对比与来源追溯</title>
+    <meta name="description" content="覆盖广东、江苏、山东、浙江、内蒙古5省工商业分时电价政策的观察站，提供时段结构、价格对比、峰谷价差和数据来源追溯。">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+    <div class="container navbar-inner">
+        <a href="#" class="navbar-brand" onclick="App.showPage('home');return false;">
+            <span class="logo">E</span>
+            <span>城市分时电价观察站</span>
+        </a>
+        <ul class="navbar-links">
+            <li><a href="#" data-page="home" class="active" onclick="App.showPage('home');return false;">首页概览</a></li>
+            <li><a href="#" data-page="query" onclick="App.showPage('query');return false;">省份查询</a></li>
+            <li><a href="#" data-page="sources" onclick="App.showPage('sources');return false;">数据源中心</a></li>
+            <li><a href="#" data-page="missing" onclick="App.showPage('missing');return false;">缺失数据</a></li>
+            <li><a href="#" data-page="method" onclick="App.showPage('method');return false;">方法说明</a></li>
+        </ul>
+        <a href="../index.html" class="navbar-back">返回总览页</a>
+    </div>
+</nav>
+
+<!-- ==================== 首页 ==================== -->
+<div id="page-home" class="page active">
+    
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container hero-content">
+            <h1>城市分时电价观察站</h1>
+            <p>覆盖广东、江苏、山东、浙江、内蒙古5个用电大省的工商业分时电价政策，提供时段结构、价格对比和来源追溯。</p>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-provinces">-</div>
+                    <div class="stat-label">收录区域</div>
+                    <div class="stat-sub">含蒙西/蒙东分区</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-policies">-</div>
+                    <div class="stat-label">电价时段记录</div>
+                    <div class="stat-sub">工商业口径</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-sources">-</div>
+                    <div class="stat-label">权威数据源</div>
+                    <div class="stat-sub">省级发改委官网</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-missing">-</div>
+                    <div class="stat-label">缺失/待验证项</div>
+                    <div class="stat-sub">已标注原因</div>
+                </div>
+            </div>
+            <div style="margin-top:16px;font-size:0.78rem;color:rgba(255,255,255,0.4);">
+                数据采集时间: <span id="last-update">2026-07-25</span>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 分析结论 -->
+    <section class="section">
+        <div class="container">
+            <div class="insight-card">
+                <div class="insight-label">一句话分析结论</div>
+                <div class="insight-text">
+                    山东是全国唯一公布完整"五段式"具体电价（尖峰1.20、峰1.00、平0.71、谷0.35、深谷0.25元/kWh）的省份，峰谷价差达0.95元/kWh，居五省之首；广东、江苏、浙江、内蒙古均采用浮动比例机制（基准价按月浮动），其中浙江峰谷浮动比最高达10.25:1（2.05:0.2），理论上峰谷价差最大但实际价格随月度波动。
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 对比表 -->
+    <section class="section" style="padding-top:0;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">五省分时电价分类对比</h2>
+                <p class="section-desc">以工商业用户为口径，展示各省尖峰、峰、平、谷、深谷五类时段的代表性电价。山东为官方公布的具体电价；其他省份为浮动比例（以平段为基准），"浮动"表示该省无固定电价数值。</p>
+            </div>
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>省份</th>
+                            <th>尖峰</th>
+                            <th>峰</th>
+                            <th>平</th>
+                            <th>谷</th>
+                            <th>深谷</th>
+                            <th>峰谷价差</th>
+                            <th>数据状态</th>
+                            <th>来源</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparison-tbody">
+                        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">数据加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="margin-top:12px;font-size:0.8rem;color:var(--text-muted);">
+                电价单位: 元/kWh。山东数据为2025年4月35千伏一般工商业示例电价；其他省份因代理购电价格按月浮动，仅展示浮动比例，"浮动"表示无固定数值。
+            </p>
+        </div>
+    </section>
+    
+    <!-- 图表 -->
+    <section class="section" style="padding-top:0;">
+        <div class="container">
+            <div class="chart-container">
+                <div class="chart-title">五省分时电价分类柱状对比</div>
+                <div class="chart-desc">山东为官方具体电价；其他省份按浮动比例以参考基准价0.71元/kWh换算估算值，仅供对比参考，非实际到户电价。</div>
+                <canvas id="comparison-chart" height="120"></canvas>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 可追溯入口 -->
+    <section class="section" style="padding-top:0;">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">数据来源追溯</h2>
+                <p class="section-desc">每条电价数据均来源于省级发展改革委官网，可点击查看原始政策文件。</p>
+            </div>
+            <div id="home-sources-preview">
+                <div style="text-align:center;padding:20px;">
+                    <a href="#" onclick="App.showPage('sources');return false;" style="display:inline-block;padding:12px 32px;background:var(--primary);color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">进入数据源中心</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+</div>
+
+<!-- ==================== 查询页 ==================== -->
+<div id="page-query" class="page">
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">省份查询</h2>
+                <p class="section-desc">按省份、季节、用户类型筛选分时电价时段和价格。</p>
+            </div>
+            
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">省份</label>
+                    <select id="query-province" class="filter-select">
+                        <option value="">全部省份</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">季节</label>
+                    <select id="query-season" class="filter-select">
+                        <option value="">全部</option>
+                        <option value="全年">全年</option>
+                        <option value="夏冬">夏冬两季</option>
+                        <option value="春秋">春秋两季</option>
+                        <option value="大风季">大风季（蒙西）</option>
+                        <option value="小风季">小风季（蒙西）</option>
+                        <option value="夏季">夏季</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">用户类型</label>
+                    <select id="query-user-type" class="filter-select">
+                        <option value="">全部</option>
+                        <option value="工商业">工商业</option>
+                        <option value="代理购电">代理购电用户</option>
+                    </select>
+                </div>
+                <button onclick="App.onQuery()" style="padding:8px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">查询</button>
+            </div>
+            
+            <div id="query-results">
+                <div class="loading">请点击"查询"按钮加载数据</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ==================== 数据源中心 ==================== -->
+<div id="page-sources" class="page">
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">数据源中心</h2>
+                <p class="section-desc">所有电价数据均来源于省级发展改革委官网或政府公开公告，可追溯至原始政策文件。</p>
+            </div>
+            <div id="sources-list">
+                <div class="loading">数据加载中...</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ==================== 缺失数据 ==================== -->
+<div id="page-missing" class="page">
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">缺失数据说明</h2>
+                <p class="section-desc">以下数据因政策机制原因无法获取固定数值，已标注原因和下一步建议。本观察站不编造任何数据。</p>
+            </div>
+            <div id="missing-list">
+                <div class="loading">数据加载中...</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ==================== 方法说明 ==================== -->
+<div id="page-method" class="page">
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">方法说明</h2>
+                <p class="section-desc">本观察站的数据采集、结构化和展示方法。</p>
+            </div>
+            
+            <div class="method-card">
+                <h3>数据来源规则</h3>
+                <ul>
+                    <li>优先使用省级或地市级发展改革委官网、能源主管部门官网</li>
+                    <li>使用国家电网、南方电网及其省级电力公司官网</li>
+                    <li>使用政府公开公告、政策文件、价格表、PDF 附件</li>
+                    <li>不建议使用未标注来源的二次转载文章、无发布时间或发布机构的网页</li>
+                </ul>
+            </div>
+            
+            <div class="method-card">
+                <h3>口径说明</h3>
+                <ul>
+                    <li>本项目以"工商业"用户为统一口径，不混用居民电价、工商业电价、代理购电价格</li>
+                    <li>电价单位统一为元/kWh，原始来源使用其他单位的已换算</li>
+                    <li>区分省份、城市/区域、用户类型、电压等级、季节类型、分时时段、起止时间</li>
+                    <li>每条记录包含政策生效日期、来源 URL、发布机构、发布时间、采集时间和口径说明</li>
+                </ul>
+            </div>
+            
+            <div class="method-card">
+                <h3>时段标准分类</h3>
+                <ul>
+                    <li>尖峰: 最高电价时段，通常仅在夏季/冬季高峰或极端高温日执行</li>
+                    <li>峰: 高电价时段，引导用户避峰用电</li>
+                    <li>平: 基准电价时段，电价接近平均供电成本</li>
+                    <li>谷: 低电价时段，引导用户填谷用电</li>
+                    <li>深谷: 最低电价时段，通常在午间光伏大发时段执行（山东首创）</li>
+                    <li>不同省份的时段划分不同，不能假设全国统一</li>
+                </ul>
+            </div>
+            
+            <div class="method-card">
+                <h3>数据状态说明</h3>
+                <ul>
+                    <li>真实数据: 来源于省级发改委官网公开政策文件，可追溯</li>
+                    <li>缺失数据: 因政策机制原因无法获取固定数值，已标注原因</li>
+                    <li>本项目不使用任何 mock 数据冒充真实数据</li>
+                    <li>山东电价为官方新闻发布会公布的示例电价（2025年4月35千伏一般工商业），其他省份为浮动比例</li>
+                </ul>
+            </div>
+            
+            <div class="method-card">
+                <h3>双数据源架构</h3>
+                <ul>
+                    <li>CSV 模式: 静态展示场景，前端直接读取 CSV 文件，适用于 IIS / GitHub Pages</li>
+                    <li>SQLite 模式: 本地完整验证场景，通过 Python HTTP 服务读取数据库</li>
+                        <li>通过 <code>config.json</code> 切换数据源，同一套前端代码。当前模式: <strong id="current-mode-display">CSV</strong></li>
+                    <li>两种模式下页面展示、筛选查询、来源追溯行为完全一致</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>城市分时电价观察站 MVP | DuMate 版本 | 2026</p>
+        <p style="margin-top:4px;">
+            数据来源: 各省发展改革委官网 | 
+            <a href="../index.html">返回总览页</a>
+        </p>
+    </div>
+</footer>
+
+<!-- 调试脚本：显示 fetch 状态和加载进度 -->
+<script>
+(function() {
+    const debugLog = [];
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options) {
+        const startTime = performance.now();
+        debugLog.push({ url: url, status: 'fetching', start: startTime });
+        console.log('[DEBUG] Fetch start:', url);
+        return originalFetch(url, options).then(function(response) {
+            const elapsed = (performance.now() - startTime).toFixed(1);
+            const entry = debugLog.find(e => e.url === url && e.status === 'fetching');
+            if (entry) { entry.status = response.ok ? 'ok' : 'error'; entry.time = elapsed; entry.code = response.status; }
+            console.log('[DEBUG] Fetch done:', url, response.status, elapsed + 'ms');
+            if (!response.ok) console.error('[DEBUG] Fetch failed:', url, response.status);
+            return response;
+        }).catch(function(err) {
+            const elapsed = (performance.now() - startTime).toFixed(1);
+            const entry = debugLog.find(e => e.url === url && e.status === 'fetching');
+            if (entry) { entry.status = 'exception'; entry.time = elapsed; entry.error = err.message; }
+            console.error('[DEBUG] Fetch exception:', url, err.message, elapsed + 'ms');
+            throw err;
+        });
+    };
+
+    window.DataDebug = {
+        getLog: function() { return debugLog.slice(); },
+        showStatus: function() {
+            const el = document.getElementById('debug-status');
+            if (!el) {
+                const div = document.createElement('div');
+                div.id = 'debug-status';
+                div.style.cssText = 'position:fixed;bottom:10px;right:10px;background:rgba(0,0,0,0.8);color:#fff;padding:12px 16px;border-radius:8px;font-size:12px;font-family:monospace;z-index:9999;max-width:360px;max-height:200px;overflow:auto;';
+                document.body.appendChild(div);
+            }
+            const items = debugLog.map(e => `<div style="margin:2px 0;">${e.url.split('/').pop()}: <span style="color:${e.status==='ok'?'#4ade80':e.status==='error'?'#f87171':'#fbbf24'}">${e.status}</span> ${e.code || ''} ${e.time ? '('+e.time+'ms)' : ''}</div>`).join('');
+            document.getElementById('debug-status').innerHTML = '<div style="font-weight:bold;margin-bottom:6px;">加载状态</div>' + (items || '<div style="color:#aaa;">暂无 fetch 记录</div>');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() { window.DataDebug.showStatus(); }, 100);
+        setTimeout(function() { window.DataDebug.showStatus(); }, 1000);
+        setTimeout(function() { window.DataDebug.showStatus(); }, 3000);
+    });
+})();
+</script>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

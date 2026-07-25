@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>城市分时电价观察站 — WorkBuddy 版本</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <style>
+        .nav-logo { cursor: pointer; }
+        .nav-back-link {
+            margin-left: 12px; padding: 4px 12px; font-size: 0.78rem;
+            color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 14px; transition: all 0.2s;
+        }
+        .nav-back-link:hover {
+            color: #fff; border-color: var(--primary); background: rgba(0,167,203,0.1);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#home" class="nav-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">城市分时电价观察站</span>
+                <span style="font-size:0.65rem;background:var(--primary);color:#fff;padding:1px 8px;border-radius:4px;margin-left:6px;">WorkBuddy</span>
+            </a>
+            <a href="../" class="nav-back-link">← 返回总览</a>
+            <button class="nav-toggle" aria-label="菜单">☰</button>
+            <div class="nav-links">
+                <a class="nav-link active" data-route="home">首页</a>
+                <a class="nav-link" data-route="query">省份查询</a>
+                <a class="nav-link" data-route="sources">数据源中心</a>
+                <a class="nav-link" data-route="missing">缺失说明</a>
+                <a class="nav-link" data-route="about">方法说明</a>
+            </div>
+        </div>
+    </nav>
+
+    <main id="page-content">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <span style="color:var(--text-muted);">加载中...</span>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>城市分时电价观察站 · WorkBuddy 构建 · 基于政府公开政策文件 · 数据仅供研究参考</p>
+        </div>
+    </footer>
+
+    <script src="js/data-loader.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        if (!window.location.hash) {
+            window.location.hash = '#home';
+        }
+    </script>
+</body>
+</html>

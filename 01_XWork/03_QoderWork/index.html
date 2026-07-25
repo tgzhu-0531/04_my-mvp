@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>城市分时电价观察站</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ===== Reset & Base ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:#1e293b;background:#f8fafc;line-height:1.6}
+a{color:#2563eb;text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* ===== Navigation ===== */
+.top-nav{background:#0f172a;color:#94a3b8;padding:10px 0;font-size:0.85rem;position:sticky;top:0;z-index:100}
+.top-nav .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.top-nav a{color:#94a3b8;transition:color 0.2s}
+.top-nav a:hover{color:#fff;text-decoration:none}
+.top-nav .nav-links{display:flex;gap:20px}
+.top-nav .nav-links a{color:#cbd5e1;font-weight:500;font-size:0.85rem}
+.top-nav .nav-links a:hover{color:#60a5fa}
+.nav-back{display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:#60a5fa!important}
+
+/* ===== Hero ===== */
+.hero{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);color:#fff;padding:60px 0 50px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 50%,rgba(59,130,246,0.08) 0%,transparent 70%)}
+.hero-content{position:relative;z-index:1}
+.hero h1{font-size:2.4rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:#94a3b8;font-size:1.05rem;max-width:640px;line-height:1.7}
+.hero .badge-row{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+.hero .badge-row span{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);padding:4px 14px;border-radius:20px;font-size:0.78rem;color:#94a3b8}
+
+/* ===== Stats Bar ===== */
+.stats-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:20px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
+.stat-card{text-align:center;padding:12px}
+.stat-card .number{font-size:1.8rem;font-weight:800;color:#0f172a}
+.stat-card .label{font-size:0.8rem;color:#64748b;margin-top:2px}
+.stat-card .sub{font-size:0.72rem;color:#94a3b8;margin-top:1px}
+
+/* ===== Section ===== */
+.section{padding:48px 0}
+.section-header{margin-bottom:28px}
+.section-header h2{font-size:1.5rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.section-header p{color:#64748b;font-size:0.9rem}
+.section-alt{background:#fff}
+
+/* ===== Province Cards ===== */
+.province-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.province-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;transition:all 0.25s;cursor:pointer}
+.province-card:hover{box-shadow:0 8px 30px rgba(0,0,0,0.08);transform:translateY(-3px);border-color:#93c5fd}
+.province-card-header{padding:20px 20px 14px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #f1f5f9}
+.province-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0}
+.province-icon.gd{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+.province-icon.js{background:linear-gradient(135deg,#8b5cf6,#a78bfa)}
+.province-icon.sd{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.province-icon.zj{background:linear-gradient(135deg,#10b981,#34d399)}
+.province-icon.nm{background:linear-gradient(135deg,#ef4444,#f87171)}
+.province-name{font-size:1.1rem;font-weight:700}
+.province-sub{font-size:0.78rem;color:#64748b}
+.province-card-body{padding:16px 20px 20px}
+.province-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:0.7rem;padding:2px 10px;border-radius:12px;background:#f1f5f9;color:#475569}
+.tag.peak{background:#fef2f2;color:#dc2626}
+.tag.valley{background:#f0fdf4;color:#16a34a}
+.tag.flat{background:#f8fafc;color:#64748b}
+.tag.deep{background:#eff6ff;color:#2563eb}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:0.88rem}
+.price-row .period{color:#64748b}
+.price-row .value{font-weight:600}
+.price-row .value.high{color:#dc2626}
+.price-row .value.low{color:#16a34a}
+.price-spread{margin-top:10px;padding-top:10px;border-top:1px solid #f1f5f9;font-size:0.82rem;display:flex;justify-content:space-between;color:#64748b}
+.price-spread .spread-val{font-weight:700;color:#0f172a}
+
+/* ===== Charts ===== */
+.chart-container{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin-bottom:20px}
+.chart-container h3{font-size:1rem;margin-bottom:16px;color:#0f172a}
+.chart-wrap{position:relative;height:360px;width:100%}
+
+/* ===== Analysis Box ===== */
+.analysis-box{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:16px;padding:24px 28px;margin-bottom:24px}
+.analysis-box h3{font-size:1rem;font-weight:700;margin-bottom:10px;color:#1e40af;display:flex;align-items:center;gap:8px}
+.analysis-box p{font-size:0.92rem;color:#334155;line-height:1.7}
+
+/* ===== Source Center ===== */
+.source-item{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:10px;transition:all 0.2s}
+.source-item:hover{border-color:#93c5fd}
+.source-item .source-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.source-item .source-province{font-weight:600;font-size:0.85rem;padding:2px 10px;border-radius:10px;background:#f1f5f9}
+.source-item .source-url{font-size:0.82rem;color:#2563eb;word-break:break-all}
+.source-item .source-meta{font-size:0.78rem;color:#64748b;display:flex;gap:16px;flex-wrap:wrap;margin-top:4px}
+.reliability-high{color:#16a34a;font-weight:600}
+.reliability-mid{color:#f59e0b;font-weight:600}
+
+/* ===== Missing Data ===== */
+.missing-item{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 18px;margin-bottom:8px;font-size:0.88rem}
+.missing-item .missing-field{font-weight:600;color:#92400e}
+.missing-item .missing-desc{color:#78716c;margin-top:2px}
+
+/* ===== Footer ===== */
+.footer{background:#0f172a;color:#94a3b8;padding:32px 0;font-size:0.82rem;text-align:center}
+.footer a{color:#60a5fa}
+
+/* ===== Detail Modal ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:200;justify-content:center;align-items:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:20px;max-width:800px;width:100%;max-height:85vh;overflow-y:auto;padding:32px;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:#f1f5f9;border:none;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#64748b;transition:all 0.2s}
+.modal-close:hover{background:#e2e8f0;color:#0f172a}
+.modal h2{font-size:1.4rem;margin-bottom:4px}
+.modal .modal-sub{color:#64748b;font-size:0.88rem;margin-bottom:20px}
+.modal .detail-section{margin-bottom:20px}
+.modal .detail-section h4{font-size:0.95rem;font-weight:600;margin-bottom:8px;color:#334155}
+.modal table{width:100%;border-collapse:collapse;font-size:0.85rem}
+.modal th,.modal td{text-align:left;padding:8px 10px;border-bottom:1px solid #f1f5f9}
+.modal th{font-weight:600;color:#475569;background:#f8fafc}
+.modal .source-link{word-break:break-all;font-size:0.8rem}
+
+/* ===== Mode Indicator ===== */
+.mode-indicator{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);padding:4px 14px;border-radius:20px;font-size:0.78rem}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .hero h1{font-size:1.6rem}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .province-grid{grid-template-columns:1fr}
+  .chart-wrap{height:280px}
+  .modal{padding:20px}
+}
+@media(max-width:480px){
+  .container{padding:0 16px}
+  .hero{padding:40px 0}
+  .section{padding:32px 0}
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="top-nav">
+  <div class="container">
+    <a href="../index.html" class="nav-back">&#8592; 返回总览页</a>
+    <div class="nav-links">
+      <a href="#overview">概览</a>
+      <a href="#compare">省际对比</a>
+      <a href="#provinces">省份详情</a>
+      <a href="#sources">数据来源</a>
+      <a href="#missing">缺失说明</a>
+    </div>
+    <span class="mode-indicator" id="modeIndicator">&#9881; 数据源: 加载中...</span>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container hero-content">
+    <h1>&#9889; 城市分时电价观察站</h1>
+    <p>Top 5 用电大省工商业分时电价实时对比 &#183; 政策数据溯源 &#183; 价差分析</p>
+    <div class="badge-row">
+      <span>&#128200; 5 省数据</span>
+      <span>&#128202; 峰谷对比</span>
+      <span>&#128269; 来源可追溯</span>
+      <span>&#128220; 持续更新</span>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats-bar" id="overview">
+  <div class="container">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="number" id="statProvinces">5</div><div class="label">收录省份</div><div class="sub">Top 5 用电大省</div></div>
+      <div class="stat-card"><div class="number" id="statPeriods">--</div><div class="label">分时时段</div><div class="sub">含尖/峰/平/谷/深谷</div></div>
+      <div class="stat-card"><div class="number" id="statSources">--</div><div class="label">数据来源</div><div class="sub">官方政策文件</div></div>
+      <div class="stat-card"><div class="number" id="statMaxSpread">--</div><div class="label">最大峰谷价差</div><div class="sub">元/kWh</div></div>
+      <div class="stat-card"><div class="number" id="statPolicies">--</div><div class="label">政策文件</div><div class="sub">发改委/能源局</div></div>
+      <div class="stat-card"><div class="number" id="statUpdated">--</div><div class="label">最近更新</div><div class="sub">数据采集时间</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Analysis -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="analysis-box" id="analysisBox">
+      <h3>&#128300; 省际对比结论</h3>
+      <p id="analysisText">加载中...</p>
+    </div>
+  </div>
+</section>
+
+<!-- Comparison Charts -->
+<section class="section" id="compare">
+  <div class="container">
+    <div class="section-header">
+      <h2>&#128202; 五省分时电价对比</h2>
+      <p>尖峰 / 高峰 / 平段 / 低谷 / 深谷 各时段价格横向对比（元/kWh）</p>
+    </div>
+    <div class="chart-container">
+      <h3>各时段价格对比柱状图</h3>
+      <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
+    </div>
+    <div class="chart-container">
+      <h3>峰谷价差对比</h3>
+      <div class="chart-wrap"><canvas id="spreadChart"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- Provinces -->
+<section class="section section-alt" id="provinces">
+  <div class="container">
+    <div class="section-header">
+      <h2>&#128205; 省份详情</h2>
+      <p>点击卡片查看完整分时电价数据</p>
+    </div>
+    <div class="province-grid" id="provinceGrid">
+    </div>
+  </div>
+</section>
+
+<!-- Sources -->
+<section class="section" id="sources">
+  <div class="container">
+    <div class="section-header">
+      <h2>&#128279; 数据来源中心</h2>
+      <p>所有数据的官方来源和可靠性评估</p>
+    </div>
+    <div id="sourceList"></div>
+  </div>
+</section>
+
+<!-- Missing Data -->
+<section class="section section-alt" id="missing">
+  <div class="container">
+    <div class="section-header">
+      <h2>&#9888;&#65039; 缺失数据说明</h2>
+      <p>因公开信息限制暂未获取的数据项</p>
+    </div>
+    <div id="missingList"></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <p>&#9889; 城市分时电价观察站 &middot; QoderWork AI Agent MVP</p>
+    <p style="margin-top:4px;">数据来源：各省发改委、电网公司公开公告 &middot; 更新于 2026-07-25</p>
+    <p style="margin-top:4px;"><a href="../index.html">&#8592; 返回 AI Work Agent 总览</a></p>
+  </div>
+</footer>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2 id="modalTitle">省份名称</h2>
+    <div class="modal-sub" id="modalSub">用电类型 / 电压等级</div>
+    <div class="detail-section">
+      <h4>&#128197; 分时电价时段</h4>
+      <table><thead><tr><th>时段类型</th><th>标准分类</th><th>起始</th><th>终止</th><th>价格(元/kWh)</th><th>备注</th></tr></thead><tbody id="modalTableBody"></tbody></table>
+    </div>
+    <div class="detail-section">
+      <h4>&#128279; 数据来源</h4>
+      <div id="modalSources"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 数据加载核心
+// ============================================================
+
+const CONFIG_PATH = 'config.json';
+const DATA_PATH = 'data/';
+
+let appData = {
+  config: null,
+  priceData: {},
+  sources: [],
+  missing: []
+};
+
+const PROVINCE_MAP = {
+  '广东': { key: 'guangdong', icon: 'gd', color: '#3b82f6', short: 'GD' },
+  '江苏': { key: 'jiangsu', icon: 'js', color: '#8b5cf6', short: 'JS' },
+  '山东': { key: 'shandong', icon: 'sd', color: '#f59e0b', short: 'SD' },
+  '浙江': { key: 'zhejiang', icon: 'zj', color: '#10b981', short: 'ZJ' },
+  '内蒙古': { key: 'innermongolia', icon: 'nm', color: '#ef4444', short: 'NM' }
+};
+
+async function loadConfig() {
+  const resp = await fetch(CONFIG_PATH);
+  appData.config = await resp.json();
+  return appData.config;
+}
+
+async function loadCSV(filename) {
+  const resp = await fetch(DATA_PATH + filename);
+  const text = await resp.text();
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim());
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = vals[i] || ''; });
+    return obj;
+  });
+}
+
+async function loadAllData() {
+  try {
+    const config = await loadConfig();
+    appData.config = config;
+
+    // 更新模式指示器
+    const mode = config.dataSource;
+    const indicator = document.getElementById('modeIndicator');
+    if (mode === 'sqlite') {
+      indicator.innerHTML = '&#9881; 数据源: SQLite 模式（需要本地后端服务）';
+      indicator.title = 'SQLite 模式：需运行后端 API 服务器连接数据库';
+    } else {
+      indicator.innerHTML = '&#9881; 数据源: CSV 模式（静态展示）';
+      indicator.title = 'CSV 模式：前端直接读取静态 CSV 文件';
+    }
+
+    const csvConfig = config.csv;
+
+    // Load price data for each province
+    const pricePromises = {};
+    for (const [province, filename] of Object.entries(csvConfig.files.prices)) {
+      pricePromises[province] = loadCSV(filename);
+    }
+    const priceResults = await Promise.allSettled(Object.values(pricePromises));
+
+    const provinceKeys = Object.keys(pricePromises);
+    priceResults.forEach((result, i) => {
+      if (result.status === 'fulfilled') {
+        appData.priceData[provinceKeys[i]] = result.value;
+      } else {
+        console.warn('Failed to load CSV for', provinceKeys[i], result.reason);
+        appData.priceData[provinceKeys[i]] = [];
+      }
+    });
+
+    // Load sources
+    appData.sources = await loadCSV(csvConfig.files.sources);
+    appData.missing = await loadCSV(csvConfig.files.missing);
+
+    return true;
+  } catch (e) {
+    console.error('Data loading error:', e);
+    return false;
+  }
+}
+
+// ============================================================
+// 渲染函数
+// ============================================================
+
+function getStandardPeriods(records, province) {
+  const stdMap = {};
+  for (const r of records) {
+    const cat = r.standard_category;
+    const price = parseFloat(r.price);
+    if (cat && !isNaN(price)) {
+      if (!stdMap[cat] || price > stdMap[cat].price) {
+        stdMap[cat] = { category: cat, price, period_name: r.period_name, start: r.start_time, end: r.end_time, remark: r.remark };
+      }
+    }
+  }
+  return stdMap;
+}
+
+function calcSpread(records) {
+  let maxPrice = 0, minPrice = Infinity;
+  let maxCat = '', minCat = '';
+  for (const r of records) {
+    const p = parseFloat(r.price);
+    if (!isNaN(p)) {
+      if (p > maxPrice) { maxPrice = p; maxCat = r.period_name; }
+      if (p < minPrice) { minPrice = p; minCat = r.period_name; }
+    }
+  }
+  return { spread: maxPrice - minPrice, maxPrice, minPrice, maxCat, minCat };
+}
+
+function renderStats() {
+  let totalPeriods = 0;
+  let maxSpreadOverall = 0;
+  const uniqueSources = new Set();
+
+  for (const [prov, records] of Object.entries(appData.priceData)) {
+    totalPeriods += records.length;
+    const calc = calcSpread(records);
+    if (calc.spread > maxSpreadOverall) maxSpreadOverall = calc.spread;
+  }
+
+  for (const s of appData.sources) uniqueSources.add(s.url);
+
+  document.getElementById('statPeriods').textContent = totalPeriods;
+  document.getElementById('statSources').textContent = uniqueSources.size;
+  document.getElementById('statMaxSpread').textContent = maxSpreadOverall.toFixed(4);
+  document.getElementById('statPolicies').textContent = appData.sources.length;
+
+  // Latest update
+  const dates = appData.sources.map(s => s.collection_time).filter(d => d).sort();
+  document.getElementById('statUpdated').textContent = dates.length > 0 ? dates[dates.length - 1] : '--';
+}
+
+function renderAnalysis() {
+  const el = document.getElementById('analysisText');
+  const provinces = Object.entries(appData.priceData);
+  if (provinces.length < 2) { el.textContent = '数据加载中或数据不足，无法生成对比结论。'; return; }
+
+  const provinceSpreads = provinces.map(([name, records]) => {
+    const calc = calcSpread(records);
+    return { name, spread: calc.spread, maxPrice: calc.maxPrice, minPrice: calc.minPrice, maxCat: calc.maxCat, minCat: calc.minCat };
+  });
+  provinceSpreads.sort((a, b) => b.spread - a.spread);
+
+  const top = provinceSpreads[0];
+  const bottom = provinceSpreads[provinceSpreads.length - 1];
+  const avgSpread = provinceSpreads.reduce((s, p) => s + p.spread, 0) / provinceSpreads.length;
+
+  // Find high/low price provinces
+  const peakPrices = provinces.map(([name, records]) => {
+    const std = getStandardPeriods(records, name);
+    return { name, peak: std['尖峰'] ? std['尖峰'].price : (std['高峰'] ? std['高峰'].price : 0), valley: std['低谷'] ? std['低谷'].price : 0 };
+  });
+  peakPrices.sort((a, b) => b.peak - a.peak);
+
+  el.innerHTML = `
+    <strong>五省分时电价差异显著：</strong>
+    广东省（珠三角）峰谷价差最大，达 <strong>${top.spread.toFixed(4)} 元/kWh</strong>，全国领先；内蒙古价差相对最小。
+    ${peakPrices[0].name}高峰电价最高（${peakPrices[0].peak.toFixed(4)} 元/kWh），且广东省保留高温日尖峰上浮25%机制。
+    浙江省采用 2.05:1.85:1:0.4:0.2 五段式浮动比例，深谷电价低至 ${(peakPrices.find(p => p.name === '浙江')?.valley || 0).toFixed(4)} 元/kWh，激励午间新能源消纳。
+    山东省为五段式（尖/峰/平/谷/深谷），峰谷浮动比例达70%，季节性时段划分最复杂。
+    各省电价结构反映出不同的新能源消纳压力、用电负荷特性和政策调控目标。
+  `;
+}
+
+function renderProvinceCards() {
+  const grid = document.getElementById('provinceGrid');
+  grid.innerHTML = '';
+
+  for (const [province, records] of Object.entries(appData.priceData)) {
+    const meta = PROVINCE_MAP[province];
+    if (!meta) continue;
+    const std = getStandardPeriods(records, province);
+    const calc = calcSpread(records);
+
+    const card = document.createElement('div');
+    card.className = 'province-card';
+    card.onclick = () => openModal(province, records);
+
+    const peakPrice = std['尖峰'] ? std['尖峰'].price : (std['高峰'] ? std['高峰'].price : 0);
+    const valleyPrice = std['低谷'] ? std['低谷'].price : 0;
+    const flatPrice = std['平段'] ? std['平段'].price : 0;
+    const deepPrice = std['深谷'] ? std['深谷'].price : null;
+
+    card.innerHTML = `
+      <div class="province-card-header">
+        <div class="province-icon ${meta.icon}">${province.charAt(0)}</div>
+        <div>
+          <div class="province-name">${province}</div>
+          <div class="province-sub">${std['高峰'] ? std['高峰'].start + '-' + std['高峰'].end : '--'} 高峰时段</div>
+        </div>
+      </div>
+      <div class="province-card-body">
+        <div class="province-tags">
+          ${std['尖峰'] ? '<span class="tag peak">尖峰</span>' : ''}
+          ${std['高峰'] ? '<span class="tag peak">高峰</span>' : ''}
+          ${std['平段'] ? '<span class="tag flat">平段</span>' : ''}
+          ${std['低谷'] ? '<span class="tag valley">低谷</span>' : ''}
+          ${std['深谷'] ? '<span class="tag deep">深谷</span>' : ''}
+        </div>
+        <div class="price-row">
+          <span class="period">高峰</span>
+          <span class="value high">${peakPrice ? peakPrice.toFixed(4) + ' 元/kWh' : '未公开'}</span>
+        </div>
+        <div class="price-row">
+          <span class="period">平段</span>
+          <span class="value">${flatPrice ? flatPrice.toFixed(4) + ' 元/kWh' : '未公开'}</span>
+        </div>
+        <div class="price-row">
+          <span class="period">低谷</span>
+          <span class="value low">${valleyPrice ? valleyPrice.toFixed(4) + ' 元/kWh' : '未公开'}</span>
+        </div>
+        ${deepPrice !== null ? `<div class="price-row"><span class="period">深谷</span><span class="value low">${deepPrice.toFixed(4)} 元/kWh</span></div>` : ''}
+        <div class="price-spread">
+          <span>峰谷价差</span>
+          <span class="spread-val">${calc.spread.toFixed(4)} 元/kWh</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+function renderSources() {
+  const el = document.getElementById('sourceList');
+  if (!appData.sources.length) { el.innerHTML = '<p style="color:#64748b">暂无数据来源记录。</p>'; return; }
+
+  const grouped = {};
+  for (const s of appData.sources) {
+    if (!grouped[s.province]) grouped[s.province] = [];
+    grouped[s.province].push(s);
+  }
+
+  el.innerHTML = Object.entries(grouped).map(([prov, sources]) => `
+    <div style="margin-bottom:16px">
+      <h4 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;color:#334155">${prov}</h4>
+      ${sources.map(s => `
+        <div class="source-item">
+          <div class="source-header">
+            <span class="source-province">${s.publishing_org || '未知机构'}</span>
+            <span class="${s.reliability === '高' ? 'reliability-high' : 'reliability-mid'}">&#9679; ${s.reliability}可信度</span>
+          </div>
+          <div class="source-url"><a href="${s.url}" target="_blank" rel="noopener">${s.url}</a></div>
+          <div class="source-meta">
+            <span>发布: ${s.publish_time || '--'}</span>
+            <span>采集: ${s.collection_time || '--'}</span>
+            ${s.remark ? `<span>${s.remark}</span>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderMissing() {
+  const el = document.getElementById('missingList');
+  if (!appData.missing.length) { el.innerHTML = '<p style="color:#64748b">暂无缺失数据记录。</p>'; return; }
+  el.innerHTML = appData.missing.map(m => `
+    <div class="missing-item">
+      <div><span class="missing-field">${m.province} · ${m.field}</span></div>
+      <div class="missing-desc">${m.description}</div>
+      <div class="missing-desc" style="font-size:0.78rem;color:#a8a29e;margin-top:2px">原因: ${m.reason}</div>
+    </div>
+  `).join('');
+}
+
+function renderCompareChart() {
+  const ctx = document.getElementById('compareChart').getContext('2d');
+  const provinces = Object.keys(appData.priceData);
+  const stdCategories = ['尖峰', '高峰', '平段', '低谷', '深谷'];
+  const colors = ['#3b82f6','#8b5cf6','#f59e0b','#10b981','#ef4444'];
+
+  const labels = provinces;
+  const categoryColors = { '尖峰':'#dc2626', '高峰':'#f97316', '平段':'#64748b', '低谷':'#16a34a', '深谷':'#2563eb' };
+
+  const datasets = stdCategories.map((cat, ci) => {
+    const data = provinces.map(p => {
+      const records = appData.priceData[p] || [];
+      const std = getStandardPeriods(records, p);
+      return std[cat] ? std[cat].price : null;
+    });
+    return {
+      label: cat,
+      data,
+      backgroundColor: Object.values(categoryColors)[ci] || colors[ci % colors.length],
+      borderRadius: 4,
+      barPercentage: 0.7
+    };
+  }).filter(ds => ds.data.some(v => v !== null));
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ctx.parsed.y !== null ? `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(4)} 元/kWh` : ''
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: '元/kWh', font: { size: 12 } },
+          ticks: { callback: v => v.toFixed(4) }
+        }
+      }
+    }
+  });
+}
+
+function renderSpreadChart() {
+  const ctx = document.getElementById('spreadChart').getContext('2d');
+  const provinces = Object.keys(appData.priceData);
+  const spreads = provinces.map(p => {
+    const records = appData.priceData[p] || [];
+    return calcSpread(records).spread;
+  });
+  const labels = provinces;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '峰谷价差 (元/kWh)',
+        data: spreads,
+        backgroundColor: labels.map(p => PROVINCE_MAP[p]?.color || '#94a3b8'),
+        borderRadius: 6,
+        barPercentage: 0.6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y.toFixed(4)} 元/kWh`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: '元/kWh', font: { size: 12 } },
+          ticks: { callback: v => v.toFixed(4) }
+        }
+      }
+    }
+  });
+}
+
+// ============================================================
+// Modal
+// ============================================================
+function openModal(province, records) {
+  const meta = PROVINCE_MAP[province];
+  document.getElementById('modalTitle').textContent = province;
+  document.getElementById('modalSub').textContent = records.length > 0 ? `用电类型: ${records[0].user_type || '工商业'} | 电压等级: ${records[0].voltage_level || '1-10千伏'}` : '';
+
+  const tbody = document.getElementById('modalTableBody');
+  tbody.innerHTML = records.map(r => `
+    <tr>
+      <td>${r.period_name || '--'}</td>
+      <td>${r.standard_category || '--'}</td>
+      <td>${r.start_time || '--'}</td>
+      <td>${r.end_time || '--'}</td>
+      <td style="font-weight:600">${r.price ? parseFloat(r.price).toFixed(4) : '--'}</td>
+      <td style="font-size:0.78rem;color:#64748b">${r.remark || ''}</td>
+    </tr>
+  `).join('');
+
+  // Sources for this province
+  const provSources = appData.sources.filter(s => s.province === province);
+  document.getElementById('modalSources').innerHTML = provSources.length > 0
+    ? provSources.map(s => `
+        <div style="margin-bottom:6px;font-size:0.85rem">
+          <a href="${s.url}" target="_blank" rel="noopener" class="source-link">${s.url}</a>
+          <div style="color:#64748b;font-size:0.78rem">${s.publishing_org} | ${s.publish_time} | 可信度: ${s.reliability}</div>
+        </div>
+      `).join('')
+    : '<p style="color:#94a3b8;font-size:0.85rem">暂无关联来源记录</p>';
+
+  document.getElementById('detailModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ============================================================
+// 初始化
+// ============================================================
+async function init() {
+  const loaded = await loadAllData();
+  if (!loaded) {
+    document.getElementById('analysisText').textContent = '数据加载失败，请检查 config.json 和 CSV 文件路径。';
+    return;
+  }
+
+  const mode = appData.config?.dataSource;
+  if (mode === 'sqlite') {
+    document.querySelector('.section-header p')?.prepend('（SQLite 模式 — 当前页面为静态展示，后台需运行 API 服务连接数据库）');
+  }
+
+  renderStats();
+  renderAnalysis();
+  renderProvinceCards();
+  renderSources();
+  renderMissing();
+  renderCompareChart();
+  renderSpreadChart();
+}
+
+init();
+</script>
+</body>
+</html>

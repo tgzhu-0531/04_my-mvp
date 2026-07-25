@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市分时电价观察站 | TRAE AI</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <!-- 模式指示条（顶部固定细线） -->
+    <div id="mode-indicator-bar" class="mode-indicator-bar csv"></div>
+
+    <!-- 导航条 -->
+    <nav class="top-nav">
+        <div class="top-nav-inner">
+            <div class="logo">
+                <div class="icon">⚡</div>
+                <span>城市分时电价观察站</span>
+                <span id="data-source-badge" class="data-source-badge csv">CSV 文件</span>
+            </div>
+            <div class="nav-links">
+                <a href="#overview" class="active">概览</a>
+                <a href="#provinces">省份</a>
+                <a href="#chart">图表</a>
+                <a href="#sources">数据源</a>
+                <a href="#missing">缺失信息</a>
+                <a href="#method">方法</a>
+            </div>
+            <a href="../index.html" class="back-link" target="_blank">← 返回总览页</a>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <div class="container">
+
+        <!-- 加载状态 -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>正在加载电价数据...</p>
+        </div>
+
+        <!-- 错误提示 -->
+        <div id="error" class="hidden">
+            <div class="error-msg">
+                <strong>⚠️ 数据加载失败</strong>
+                <p class="error-text" style="margin-top:8px"></p>
+                <p style="margin-top:8px;font-size:0.82rem;color:#991B1B">
+                    常见原因: 未通过本地 HTTP 服务器访问、数据文件缺失或编码错误、后端服务未启动、浏览器安全策略限制。
+                </p>
+            </div>
+        </div>
+
+        <!-- 内容区 -->
+        <div id="content" class="hidden">
+
+            <!-- 页面标题 -->
+            <div class="page-header" id="overview">
+                <h1>Top5 省份分时电价对比</h1>
+                <p class="subtitle">覆盖广东、江苏、山东、浙江、内蒙古的工商业分时电价政策与时段数据</p>
+                <div class="meta-info">
+                    <span>📅 数据更新: <span id="update-date">2026-07-25</span></span>
+                    <span>🔗 所有数据均来自公开政府来源，详见数据源中心</span>
+                    <span>⚡ TRAE AI · Deepseek-v4-flash · 2026</span>
+                </div>
+            </div>
+
+            <!-- 当前数据模式横幅（醒目提示） -->
+            <div id="mode-banner" class="mode-banner csv">
+                <span class="mode-icon">📁</span>
+                <span>
+                    <span class="mode-label">当前模式: CSV 文件</span>
+                    <span class="mode-hint" id="mode-banner-hint">静态展示 · 无需后端服务</span>
+                </span>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number" id="province-count">-</div>
+                    <div class="label">覆盖省份</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="source-count">-</div>
+                    <div class="label">数据来源</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="policy-count">-</div>
+                    <div class="label">电价政策</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="period-count">-</div>
+                    <div class="label">分时时段</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="missing-count">-</div>
+                    <div class="label">缺失/待验证项</div>
+                </div>
+            </div>
+
+            <!-- 结论卡片 -->
+            <div class="conclusion-card">
+                <h3>📊 一句话分析结论</h3>
+                <p id="conclusion-text">加载中...</p>
+            </div>
+
+            <!-- 价格对比表 -->
+            <div class="price-table-wrap">
+                <div class="table-header">
+                    <h3>💰 Top5 省份工商业分时电价对比 (元/kWh)</h3>
+                    <span style="font-size:0.78rem;color:var(--gray-400)">数据来源详见下方各卡片</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;padding-left:20px">省份</th>
+                            <th style="color:#DC2626">尖峰</th>
+                            <th style="color:#F97316">峰</th>
+                            <th style="color:#3B82F6">平</th>
+                            <th style="color:#10B981">谷</th>
+                            <th style="color:#059669">深谷</th>
+                        </tr>
+                    </thead>
+                    <tbody id="price-table-body">
+                        <tr><td colspan="6" style="text-align:center;color:var(--gray-400)">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="chart-section" id="chart">
+                <div class="chart-header">
+                    <h3>📈 五省 24 小时分时电价曲线对比</h3>
+                    <div class="chart-controls">
+                        <span class="legend">
+                            <span class="legend-item"><span class="dot" style="background:#DC2626"></span>广东</span>
+                            <span class="legend-item"><span class="dot" style="background:#2563EB"></span>江苏</span>
+                            <span class="legend-item"><span class="dot" style="background:#D97706"></span>山东</span>
+                            <span class="legend-item"><span class="dot" style="background:#059669"></span>浙江</span>
+                            <span class="legend-item"><span class="dot" style="background:#7C3AED"></span>内蒙古</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="multi-curve-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- 省份时段卡片 -->
+            <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:16px" id="provinces">🏛️ 各省分时时段详情</h2>
+            <div class="periods-grid" id="province-cards">
+                <div class="loading" style="grid-column:1/-1"><div class="spinner"></div></div>
+            </div>
+
+            <!-- 数据源中心 -->
+            <div class="sources-section" id="sources">
+                <div class="section-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toggle-icon').classList.toggle('collapsed')">
+                    <h3>🔗 数据源中心 <span style="font-size:0.78rem;color:var(--gray-400);font-weight:400">(点击展开)</span></h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-body" id="sources-body">
+                    <div class="loading" style="padding:20px"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <!-- 缺失数据说明 -->
+            <div class="missing-section" id="missing">
+                <div class="section-header" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.toggle-icon').classList.toggle('collapsed')">
+                    <h3>⚠️ 缺失数据与待验证信息 <span style="font-size:0.78rem;color:var(--gray-400);font-weight:400">(点击展开)</span></h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-body" id="missing-body">
+                    <div class="loading" style="padding:20px"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <!-- 方法说明 -->
+            <div class="method-card" id="method">
+                <h3>📋 数据口径与方法说明</h3>
+                <ul>
+                    <li><strong>数据口径:</strong> 以工商业分时电价为主，居民电价仅作参考展示。电价单位为元/kWh，含税含基金附加。</li>
+                    <li><strong>数据来源:</strong> 优先使用省级发改委官网、国家电网代理购电公告、地方政府官网发布的政策文件。所有来源均标注URL、发布机构和发布时间。</li>
+                    <li><strong>数据模式:</strong> 当前为 <strong id="method-mode-text">CSV 模式</strong>（静态展示）。如需切换，请修改 <code>config.json</code> 中 <code>dataSource</code> 字段，并相应启动或停止后端服务。</li>
+                    <li><strong>时段分类:</strong> 统一使用"尖峰/峰/平/谷/深谷"五级标准分类。各省原始名称可能不同（如"高峰"vs"峰期"），已映射到标准分类。</li>
+                    <li><strong>价格计算:</strong> 平段基价来自各省代理购电公告或政策文件中的代表性价格。实际月度价格因代理购电价格波动可能略有不同。</li>
+                    <li><strong>季节性差异:</strong> 山东、浙江、内蒙古等省份分时时段随季节调整，表中展示的是代表性季节的时段。广东尖峰电价仅7-9月且当日最高气温≥35℃时执行。</li>
+                    <li><strong>数据验证:</strong> 每条数据均可追溯到公开来源。无法验证的数据已标注为"待验证"或"已确认缺失"，详见下方缺失数据面板。</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="container">
+            <p>⚡ 城市分时电价观察站 · TRAE AI · Deepseek-v4-flash</p>
+            <p style="margin-top:4px">
+                数据来源: 各省/市发展改革委官网、国家电网代理购电公告 | 
+                <a href="../index.html" target="_blank">返回 AI Work Agent 总览页</a>
+            </p>
+            <p style="margin-top:8px;font-size:0.72rem">
+                本网站所有数据均来自公开政府来源。如有疑问，请通过数据源中心中的链接查阅原始文件。
+            </p>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/data-loader.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
