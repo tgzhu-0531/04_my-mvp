@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "last_updated": "2026-07-25",
 
-    "dataSource": "sqlite",
+    "dataSource": "csv",
 
     "csv": {
         "basePath": "data/",

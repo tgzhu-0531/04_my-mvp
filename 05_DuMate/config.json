@@ -1,5 +1,5 @@
 {
-  "dataSource": "sqlite",
+  "dataSource": "csv",
   "sqlite": {
     "dbPath": "./database/electricity_pricing.db",
     "serverPort": 3000,

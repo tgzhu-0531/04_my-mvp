@@ -1,7 +1,7 @@
 {
   "appName": "城市分时电价观察站",
   "version": "1.0.0",
-  "dataSource": "sqlite",
+  "dataSource": "csv",
   "dataSourceOptions": {
     "csv": {
       "basePath": "data/csv/",
