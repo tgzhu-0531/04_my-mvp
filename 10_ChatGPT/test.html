@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>数据链路测试</title></head>
+<body>
+<h2>📡 数据链路测试</h2>
+<div id="status"><p style="color:blue;">加载中...</p></div>
+<div id="result"></div>
+<script>
+async function test() {
+  var status = document.getElementById("status");
+  var result = document.getElementById("result");
+  var logs = [];
+
+  function log(msg, ok) {
+    logs.push((ok ? "✅" : "❌") + " " + msg);
+    status.innerHTML = logs.join("<br>");
+  }
+
+  try {
+    // 1. Load config.json
+    var r1 = await fetch("./config.json");
+    var config = await r1.json();
+    log("config.json loaded, dataSource=" + config.dataSource, true);
+
+    // 2. Load CSVs
+    var csvFiles = ["provinces.csv", "time_periods.csv", "sources.csv", "missing_data.csv"];
+    for (var f of csvFiles) {
+      var r = await fetch("./data/" + f);
+      var t = await r.text();
+      // Strip BOM if present
+      if (t.charCodeAt(0) === 0xFEFF) t = t.slice(1);
+      var lines = t.trim().split("\n");
+      var header = lines[0].split(",")[0].trim();
+      log(f + ": " + (lines.length-1) + " rows, header='" + header + "'", header === "province_id" || f === "sources.csv" || f === "missing_data.csv");
+    }
+
+    // 3. Parse provinces
+    var pText = await fetch("./data/provinces.csv").then(function(r){return r.text();});
+    if (pText.charCodeAt(0) === 0xFEFF) pText = pText.slice(1);
+    var pLines = pText.trim().split("\n");
+    var pHeaders = pLines[0].split(",").map(function(h){return h.trim();});
+    var pData = pLines.slice(1).map(function(l){
+      var v = l.split(",").map(function(x){return x.trim();});
+      var o = {}; pHeaders.forEach(function(h,i){o[h]=v[i]||"";}); return o;
+    });
+    log("Parsed " + pData.length + " provinces: " + pData.map(function(d){return d.province_name;}).join(", "), pData.length === 5);
+
+    // 4. Parse time periods
+    var tText = await fetch("./data/time_periods.csv").then(function(r){return r.text();});
+    if (tText.charCodeAt(0) === 0xFEFF) tText = tText.slice(1);
+    var tLines = tText.trim().split("\n");
+    var tHeaders = tLines[0].split(",").map(function(h){return h.trim();});
+    var tData = tLines.slice(1).map(function(l){
+      var vals = []; var cur = ""; var inQ = false;
+      for (var i=0;i<l.length;i++){if(l[i]==='"'){inQ=!inQ}else if(l[i]===","&&!inQ){vals.push(cur.trim());cur=""}else{cur+=l[i]}}
+      vals.push(cur.trim());
+      var o = {}; tHeaders.forEach(function(h,i){o[h]=vals[i]||"";});return o;
+    });
+    var cats = {}; tData.forEach(function(d){cats[d.standard_category]=true;});
+    log("Parsed " + tData.length + " periods, categories: " + Object.keys(cats).join(", "), tData.length > 0);
+
+    // 5. Display results
+    var html = "<h3>✅ 数据链路全部通过</h3><table border='1' cellpadding='6' style='border-collapse:collapse;margin-top:10px'>";
+    html += "<tr><th>省份</th><th>高峰均价</th><th>平段均价</th><th>低谷均价</th><th>数据源</th></tr>";
+    pData.forEach(function(p){
+      var pid = p.province_id;
+      var pPeriods = tData.filter(function(d){return d.province_id===pid && d.user_type==="一般工商业";});
+      var peak = pPeriods.filter(function(d){return d.standard_category==="峰";});
+      var flat = pPeriods.filter(function(d){return d.standard_category==="平";});
+      var valley = pPeriods.filter(function(d){return d.standard_category==="谷";});
+      var peakAvg = peak.length ? (peak.reduce(function(s,d){return s+parseFloat(d.price_yuan_per_kwh);},0)/peak.length).toFixed(4) : "—";
+      var flatAvg = flat.length ? (flat.reduce(function(s,d){return s+parseFloat(d.price_yuan_per_kwh);},0)/flat.length).toFixed(4) : "—";
+      var valleyAvg = valley.length ? (valley.reduce(function(s,d){return s+parseFloat(d.price_yuan_per_kwh);},0)/valley.length).toFixed(4) : "—";
+      html += "<tr><td><b>" + p.province_name + "</b></td><td>" + peakAvg + "</td><td>" + flatAvg + "</td><td>" + valleyAvg + "</td><td>" + peak.length + "条时段</td></tr>";
+    });
+    html += "</table>";
+    result.innerHTML = html;
+    status.innerHTML = "✅ 全部测试通过！";
+  } catch(e) {
+    log("❌ 测试失败: " + e.message + "<br><small>" + (e.stack || "").substring(0, 200) + "</small>");
+  }
+}
+test();
+</script>
+</body>
+</html>

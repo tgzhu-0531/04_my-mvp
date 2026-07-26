@@ -1,0 +1,36 @@
+{
+  "project": "城市分时电价观察站 MVP",
+  "version": "1.0.0",
+  "description": "中国城市分时电价观察站——展示重点省份的分时电价政策、时段结构、价格曲线和数据来源",
+  "dataSource": "csv",
+  "dataSourceOptions": {
+    "csv": {
+      "type": "csv",
+      "description": "静态场景（GitHub Pages / IIS），前端直接读取 CSV 文件",
+      "basePath": "data/csv/",
+      "files": {
+        "regions": "regions.csv",
+        "policies": "policies.csv",
+        "timePeriods": "time_periods.csv",
+        "pricePoints": "price_points.csv",
+        "sources": "sources.csv"
+      }
+    },
+    "sqlite": {
+      "type": "sqlite",
+      "description": "本地完整验证场景，通过后端 API 访问 SQLite 数据库",
+      "apiBaseUrl": "http://localhost:3456",
+      "apiEndpoints": {
+        "regions": "/api/regions",
+        "policies": "/api/policies",
+        "timePeriods": "/api/time-periods",
+        "pricePoints": "/api/price-points",
+        "sources": "/api/sources"
+      },
+      "databasePath": "data/sqlite/electricity_pricing.db"
+    }
+  },
+  "sampleProvinces": ["广东省", "江苏省", "山东省", "浙江省", "内蒙古自治区"],
+  "lastUpdated": "2026-07-26",
+  "notes": "修改 dataSource 字段为 'sqlite' 或 'csv' 以切换数据源。切换后刷新页面即可生效。"
+}

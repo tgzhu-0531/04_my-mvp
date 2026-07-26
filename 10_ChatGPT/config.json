@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "description": "城市分时电价观察站 数据源配置文件",
+  "dataSource": "csv",
+  "availableSources": ["sqlite", "csv"],
+  "csvConfig": {
+    "basePath": "./data/",
+    "files": {
+      "provinces": "provinces.csv",
+      "timePeriods": "time_periods.csv",
+      "sources": "sources.csv",
+      "missingData": "missing_data.csv"
+    }
+  },
+  "sqliteConfig": {
+    "dbPath": "./db/electricity_pricing.db",
+    "apiEndpoint": "http://localhost:3000/api",
+    "tables": {
+      "provinces": "provinces",
+      "timePeriods": "time_periods",
+      "sources": "sources",
+      "missingData": "missing_data"
+    }
+  }
+}

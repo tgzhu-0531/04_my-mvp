@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>城市分时电价观察站</title>
+<style>
+  /* ========== Reset & Base ========== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: #f8f6f2; color: #1a1a2e;
+    line-height: 1.6; min-height: 100vh; opacity: 0; transition: opacity 0.4s ease;
+  }
+  a { color: #0b3d5f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ========== App Shell ========== */
+  .app-header {
+    background: #0b3d5f; color: #fff;
+    padding: 0 1.5rem; position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .app-header h1 {
+    font-size: 1.1rem; font-weight: 600; letter-spacing: 0.03em;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .app-header h1 .icon { width: 1.4rem; height: 1.4rem; }
+  .app-header nav { display: flex; gap: 1.25rem; font-size: 0.85rem; }
+  .app-header nav a { color: rgba(255,255,255,0.75); transition: color .2s; }
+  .app-header nav a:hover { color: #f49d37; text-decoration: none; }
+  .data-source-badge {
+    font-size: 0.7rem; background: rgba(255,255,255,0.12);
+    padding: 0.2rem 0.6rem; border-radius: 3px; margin-left: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+  }
+  .back-link {
+    font-size: 0.8rem; color: rgba(255,255,255,0.6);
+    margin-left: 0.75rem; padding: 0.15rem 0.5rem;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 3px;
+    transition: all .2s;
+  }
+  .back-link:hover { color: #fff; border-color: rgba(255,255,255,0.5); text-decoration: none; }
+
+  .app-main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  /* ========== Hero Section ========== */
+  .hero {
+    padding: 3rem 0 2rem;
+    border-bottom: 2px solid #e5e1da;
+  }
+  .hero h2 {
+    font-size: 2rem; font-weight: 700; letter-spacing: -0.01em;
+    line-height: 1.2; margin-bottom: 0.75rem;
+  }
+  .hero h2 span { color: #f49d37; }
+  .hero p { color: #5a6a7a; max-width: 680px; font-size: 1rem; line-height: 1.7; }
+  .hero-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.25rem; margin-top: 2rem;
+  }
+  .hero-stat {
+    background: #fff; border-radius: 10px; padding: 1.25rem 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    text-align: center;
+  }
+  .hero-stat .num { font-size: 2rem; font-weight: 700; color: #0b3d5f; }
+  .hero-stat .num.teal { color: #1a8b7d; }
+  .hero-stat .num.amber { color: #f49d37; }
+  .hero-stat .label { font-size: 0.8rem; color: #7a8a9a; margin-top: 0.3rem; }
+
+  /* ========== Section Common ========== */
+  .section { margin-top: 3rem; }
+  .section-title {
+    font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .section-desc { color: #5a6a7a; font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+  /* ========== Province Cards ========== */
+  .province-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .province-card {
+    background: #fff; border-radius: 10px; padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer;
+    transition: all .25s; border: 2px solid transparent;
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .province-card:hover {
+    border-color: #f49d37; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+  }
+  .province-card.active {
+    border-color: #0b3d5f; background: #f0f4f8;
+  }
+  .province-card .pname { font-size: 1.05rem; font-weight: 600; }
+  .province-card .pcode {
+    font-size: 0.7rem; color: #7a8a9a; background: #f0eeea;
+    padding: 0.1rem 0.5rem; border-radius: 3px; align-self: flex-start;
+  }
+  .province-card .prange { font-size: 0.85rem; color: #5a6a7a; }
+  .province-card .prange strong { color: #1a1a2e; }
+  .province-card .pstatus {
+    font-size: 0.75rem; margin-top: auto; display: flex; gap: 0.3rem; flex-wrap: wrap;
+  }
+  .status-tag {
+    padding: 0.15rem 0.5rem; border-radius: 3px; font-size: 0.7rem;
+  }
+  .status-tag.confirmed { background: #dff0e8; color: #1a6b5d; }
+  .status-tag.modeled { background: #fff3d6; color: #b87a20; }
+  .status-tag.estimated { background: #e8edf2; color: #5a6a7a; }
+  .status-tag.missing { background: #fde8e8; color: #b33; }
+
+  /* ========== Price Comparison Table ========== */
+  .comparison-table-wrap {
+    overflow-x: auto; background: #fff; border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .comparison-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .comparison-table th {
+    background: #0b3d5f; color: #fff; padding: 0.75rem 1rem;
+    text-align: left; font-weight: 500; white-space: nowrap;
+  }
+  .comparison-table th:first-child { border-radius: 10px 0 0 0; }
+  .comparison-table th:last-child { border-radius: 0 10px 0 0; }
+  .comparison-table td {
+    padding: 0.7rem 1rem; border-bottom: 1px solid #eeece8;
+  }
+  .comparison-table tr:hover td { background: #faf8f5; }
+  .comparison-table .price-cell { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .comparison-table .na { color: #b0b0b0; font-style: italic; }
+  .price-high { color: #cb3b3b; }
+  .price-low { color: #1a8b7d; }
+
+  /* ========== Chart Container ========== */
+  .chart-wrap {
+    background: #fff; border-radius: 10px; padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .chart-wrap canvas { width: 100% !important; height: auto !important; max-height: 400px; }
+  .chart-legend {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem;
+  }
+  .chart-legend-item {
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.8rem; cursor: pointer;
+  }
+  .chart-legend-item .dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+  .chart-legend-item.disabled { opacity: 0.4; text-decoration: line-through; }
+
+  /* ========== Filter Bar ========== */
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+    margin-bottom: 1.25rem;
+  }
+  .filter-bar label { font-size: 0.85rem; color: #5a6a7a; }
+  .filter-bar select {
+    padding: 0.4rem 0.75rem; border: 1px solid #d5d1cb; border-radius: 6px;
+    background: #fff; font-size: 0.85rem; font-family: inherit;
+  }
+  .filter-bar .active-province {
+    background: #0b3d5f; color: #fff; border: none;
+    padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.85rem;
+  }
+
+  /* ========== Data Source Table ========== */
+  .source-table-wrap {
+    overflow-x: auto; background: #fff; border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .source-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .source-table th {
+    background: #1a2e3f; color: #fff; padding: 0.6rem 0.75rem;
+    text-align: left; font-weight: 500;
+  }
+  .source-table td {
+    padding: 0.6rem 0.75rem; border-bottom: 1px solid #eeece8;
+  }
+  .source-table tr:hover td { background: #faf8f5; }
+
+  /* ========== Analysis Box ========== */
+  .analysis-box {
+    background: linear-gradient(135deg, #f0f4f8, #f8f6f2);
+    border-left: 4px solid #f49d37;
+    border-radius: 0 10px 10px 0; padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .analysis-box h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #0b3d5f; }
+  .analysis-box p { font-size: 0.9rem; color: #3a4a5a; line-height: 1.7; }
+
+  /* ========== Missing Data Section ========== */
+  .missing-card {
+    background: #fff; border-radius: 8px; padding: 1rem 1.25rem;
+    border-left: 3px solid #e8a0a0; margin-bottom: 0.75rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .missing-card h5 { font-size: 0.9rem; font-weight: 600; color: #b33; margin-bottom: 0.3rem; }
+  .missing-card p { font-size: 0.8rem; color: #5a6a7a; line-height: 1.6; }
+
+  /* ========== Loading / Error ========== */
+  .loading {
+    text-align: center; color: #7a8a9a; padding: 3rem 1rem;
+  }
+  .loading .spinner {
+    display: inline-block; width: 30px; height: 30px;
+    border: 3px solid #e0ddd7; border-top-color: #0b3d5f;
+    border-radius: 50%; animation: spin .7s linear infinite;
+    margin-bottom: 0.75rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-msg {
+    background: #fde8e8; color: #b33; padding: 1rem 1.25rem;
+    border-radius: 8px; font-size: 0.9rem;
+  }
+  .empty-state {
+    text-align: center; color: #7a8a9a; padding: 2rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* ========== Footer ========== */
+  .app-footer {
+    text-align: center; padding: 2rem 1.5rem;
+    color: #7a8a9a; font-size: 0.75rem;
+    border-top: 1px solid #e5e1da;
+  }
+
+  /* ========== Mobile ========== */
+  @media (max-width: 768px) {
+    .app-header { height: auto; padding: 0.75rem 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .app-header nav { font-size: 0.75rem; gap: 0.75rem; flex-wrap: wrap; }
+    .hero h2 { font-size: 1.5rem; }
+    .province-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .comparison-table { font-size: 0.75rem; }
+    .comparison-table th, .comparison-table td { padding: 0.5rem 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <h1>
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+    </svg>
+    分时电价观察站
+    <span class="data-source-badge" id="agentBadge" style="background:rgba(217,119,87,0.2);color:#d97757;">Claude Desktop</span>
+	    <span class="data-source-badge" id="sourceBadge">CSV 模式</span>
+    <a class="back-link" href="../index.html" title="返回总览页">← 总览</a>
+  </h1>
+  <nav>
+    <a href="#overview">概览</a>
+    <a href="#provinces">省份</a>
+    <a href="#comparison">对比</a>
+    <a href="#curves">曲线</a>
+    <a href="#sources">数据源</a>
+    <a href="#missing">缺失说明</a>
+  </nav>
+</header>
+
+<main class="app-main">
+
+  <!-- Hero -->
+  <section class="hero" id="overview">
+    <h2>中国城市<span>分时电价</span>观察站</h2>
+    <p>跟踪重点省份的分时电价政策、时段结构与价格水平，帮助工商业用户了解不同地区的用电成本差异。</p>
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat"><div class="num" id="statProvinces">5</div><div class="label">覆盖省份</div></div>
+      <div class="hero-stat"><div class="num teal" id="statPolicies">—</div><div class="label">电价政策</div></div>
+      <div class="hero-stat"><div class="num amber" id="statSources">—</div><div class="label">数据来源</div></div>
+      <div class="hero-stat"><div class="num" id="statUpdated">2026-07</div><div class="label">最近更新</div></div>
+      <div class="hero-stat"><div class="num teal" id="statPeriods">—</div><div class="label">时段记录</div></div>
+    </div>
+  </section>
+
+  <!-- Province Cards -->
+  <section class="section" id="provinces">
+    <h3 class="section-title">📌 样本省份</h3>
+    <p class="section-desc">当前覆盖 Top5 用电大省的分时电价数据，点击省份查看详情。</p>
+    <div class="province-grid" id="provinceGrid"></div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="section" id="comparison">
+    <h3 class="section-title">📊 分时价格对比</h3>
+    <p class="section-desc">各省大工业用电夏季/夏冬季代表性时段价格对比（元/kWh）</p>
+    <div class="comparison-table-wrap">
+      <table class="comparison-table" id="comparisonTable">
+        <thead><tr><th>省份</th><th>尖峰</th><th>峰</th><th>平</th><th>谷</th><th>深谷</th><th>峰谷价差</th></tr></thead>
+        <tbody id="comparisonBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Analysis Conclusion -->
+    <div class="analysis-box">
+      <h4>🔍 一句话分析</h4>
+      <p id="analysisText">加载中...</p>
+    </div>
+  </section>
+
+  <!-- Price Curves -->
+  <section class="section" id="curves">
+    <h3 class="section-title">📈 24小时电价曲线</h3>
+    <p class="section-desc">对比各省夏季大工业用电一天内的价格波动。点击图例切换省份。</p>
+    <div class="filter-bar">
+      <label>用户类型:</label>
+      <select id="curveUserType"><option value="大工业用电">大工业用电</option><option value="一般工商业用电">一般工商业用电</option></select>
+      <label>季节:</label>
+      <select id="curveSeason"><option value="夏季">夏季</option><option value="冬季">冬季</option><option value="春秋季">春秋季</option></select>
+      <span class="active-province" id="curveProvinceLabel">夏季 大工业用电</span>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="priceChart"></canvas>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+  </section>
+
+  <!-- Data Sources -->
+  <section class="section" id="sources">
+    <h3 class="section-title">🔗 数据源中心</h3>
+    <p class="section-desc">所有电价数据均可追溯至公开来源。可靠性说明：<span class="status-tag confirmed">high</span> 官方来源 &nbsp;<span class="status-tag modeled">medium</span> 行业媒体 &nbsp;<span class="status-tag estimated">low</span> 估算数据</p>
+    <div class="source-table-wrap">
+      <table class="source-table" id="sourceTable">
+        <thead><tr><th>来源名称</th><th>发布机构</th><th>发布时间</th><th>可靠性</th><th>链接</th></tr></thead>
+        <tbody id="sourceBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Missing Data -->
+  <section class="section" id="missing">
+    <h3 class="section-title">⚠️ 缺失数据说明</h3>
+    <p class="section-desc">以下数据经检索后仍未找到稳定公开来源，已明确标注为缺失。</p>
+    <div id="missingContainer"></div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  城市分时电价观察站 MVP · 基于公开政策文件整理 · 数据仅供研究参考 · <a href="https://github.com/" target="_blank">GitHub</a>
+</footer>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"
+  integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi"
+  crossorigin="anonymous"></script>
+
+<script>
+/* =======================================================================
+   城市分时电价观察站 - 主应用
+   支持 SQLite 和 CSV 两种数据源模式，通过 config.json 切换
+   ======================================================================= */
+
+// ---- 全局状态 ----
+let CONFIG = null;
+let DATA_SOURCE_MODE = 'csv';
+let CACHE = { regions: null, policies: null, timePeriods: null, pricePoints: null, sources: null, missingData: null };
+let chartInstance = null;
+const PROVINCE_COLORS = ['#0b3d5f', '#f49d37', '#1a8b7d', '#cb3b3b', '#6b4fa0'];
+
+// ---- 省份映射 ----
+const REGION_MAP = {
+  1: { name: '广东省', short: '广东', code: 'GD' },
+  2: { name: '江苏省', short: '江苏', code: 'JS' },
+  3: { name: '山东省', short: '山东', code: 'SD' },
+  4: { name: '浙江省', short: '浙江', code: 'ZJ' },
+  5: { name: '内蒙古自治区', short: '内蒙古', code: 'NM' }
+};
+
+// ---- 加载配置 ----
+async function loadConfig() {
+  try {
+    const resp = await fetch('config.json');
+    CONFIG = await resp.json();
+    DATA_SOURCE_MODE = CONFIG.dataSource || 'csv';
+    document.getElementById('sourceBadge').textContent = (DATA_SOURCE_MODE === 'sqlite' ? 'SQLite 模式' : 'CSV 模式');
+    document.getElementById('sourceBadge').style.background = DATA_SOURCE_MODE === 'sqlite' ? 'rgba(26,139,125,0.2)' : 'rgba(244,157,55,0.2)';
+    return CONFIG;
+  } catch (e) {
+    console.warn('未找到 config.json，使用默认 CSV 模式');
+    DATA_SOURCE_MODE = 'csv';
+    return null;
+  }
+}
+
+// ---- 数据读取 ----
+async function loadCSV(filename) {
+  const resp = await fetch(`data/csv/${filename}`);
+  const text = await resp.text();
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim());
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = isNaN(vals[i]) ? vals[i] : Number(vals[i]); });
+    return obj;
+  });
+}
+
+async function loadFromSQLite(endpoint) {
+  const baseUrl = CONFIG?.dataSourceOptions?.sqlite?.apiBaseUrl || 'http://localhost:3456';
+  const resp = await fetch(`${baseUrl}${endpoint}`);
+  return await resp.json();
+}
+
+async function loadTable(tableName, csvFile, apiEndpoint) {
+  if (DATA_SOURCE_MODE === 'sqlite' && CONFIG) {
+    return await loadFromSQLite(apiEndpoint);
+  }
+  return await loadCSV(csvFile);
+}
+
+async function loadAllData() {
+  try {
+    CACHE.regions = await loadTable('regions', 'regions.csv', '/api/regions');
+    CACHE.sources = await loadTable('sources', 'sources.csv', '/api/sources');
+    CACHE.policies = await loadTable('policies', 'policies.csv', '/api/policies');
+    CACHE.timePeriods = await loadTable('time_periods', 'time_periods.csv', '/api/time-periods');
+    CACHE.pricePoints = await loadTable('price_points', 'price_points.csv', '/api/price-points');
+    // missing_data is optional
+    try {
+      if (DATA_SOURCE_MODE === 'sqlite') {
+        CACHE.missingData = await loadFromSQLite('/api/missing-data');
+      } else {
+        CACHE.missingData = [
+          { description: "广州市居民分时电价时段划分", missing_fields: "时段划分、价格", reason: "未检索到居民分时电价详细文件" },
+          { description: "内蒙古居民和农业用电分时电价", missing_fields: "用户类型覆盖", reason: "政策仅覆盖工商业" },
+          { description: "各省最新代理购电价格", missing_fields: "代理购电价格", reason: "按月发布未静态归档" },
+          { description: "山东深谷电价精确计算公式", missing_fields: "计算细节", reason: "原始公告PDF未以文本形式发布完整电价表" }
+        ];
+      }
+    } catch(e) { CACHE.missingData = []; }
+    return true;
+  } catch(e) {
+    console.error('数据加载失败:', e);
+    return false;
+  }
+}
+
+// ---- 渲染: 概览 ----
+function renderOverview() {
+  const provinces = new Set(CACHE.regions.filter(r => r.level === 'province').map(r => r.name));
+  document.getElementById('statProvinces').textContent = provinces.size;
+  document.getElementById('statPolicies').textContent = CACHE.policies.length;
+  document.getElementById('statSources').textContent = CACHE.sources.length;
+  document.getElementById('statPeriods').textContent = CACHE.timePeriods.length;
+  document.getElementById('statUpdated').textContent = '2026-07';
+}
+
+// ---- 渲染: 省份卡片 ----
+function renderProvinceCards() {
+  const grid = document.getElementById('provinceGrid');
+  const provinces = CACHE.regions.filter(r => r.level === 'province');
+  grid.innerHTML = provinces.map((p, i) => {
+    const policies = CACHE.policies.filter(pol => pol.region_id === p.id);
+    const confirmedCount = policies.filter(pol => pol.data_status === 'confirmed').length;
+    const prices = CACHE.pricePoints.filter(pp => pp.region_id === p.id);
+    const maxPrice = prices.length ? Math.max(...prices.map(pp => pp.price_value)).toFixed(3) : '—';
+    const minPrice = prices.length ? Math.min(...prices.map(pp => pp.price_value)).toFixed(3) : '—';
+    return `<div class="province-card" data-id="${p.id}" onclick="selectProvince(${p.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="pname">${p.name}</span>
+        <span class="pcode">${(REGION_MAP[p.id]||{}).code||''}</span>
+      </div>
+      <div class="prange">价格范围: <strong>${minPrice}</strong> ~ <strong>${maxPrice}</strong> 元/kWh</div>
+      <div class="pstatus">
+        <span class="status-tag confirmed">${confirmedCount} 项已确认</span>
+        <span class="status-tag estimated">${policies.length - confirmedCount} 项参考值</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---- 渲染: 对比表 ----
+function renderComparison() {
+  const tbody = document.getElementById('comparisonBody');
+  const rows = [];
+  const provinces = CACHE.regions.filter(r => r.level === 'province');
+
+  provinces.forEach(p => {
+    const prices = CACHE.pricePoints.filter(pp => pp.region_id === p.id && pp.user_type === '大工业用电' && pp.season_type === '夏季');
+    const cats = {};
+    prices.forEach(pp => {
+      if (!cats[pp.standard_category]) cats[pp.standard_category] = [];
+      cats[pp.standard_category].push(pp.price_value);
+    });
+    const avg = (arr) => arr && arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(3) : null;
+    const peak = avg(cats['尖峰']);
+    const high = avg(cats['峰']);
+    const flat = avg(cats['平']);
+    const low = avg(cats['谷']);
+    const deep = avg(cats['深谷']);
+    const spread = (peak || high) && low ? ((peak || high) - low).toFixed(4) : null;
+
+    function cell(val, cls='') { return val ? `<span class="price-cell ${cls}">${val}</span>` : '<span class="na">不适用</span>'; }
+
+    rows.push(`<tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${cell(peak, 'price-high')}</td>
+      <td>${cell(high)}</td>
+      <td>${cell(flat)}</td>
+      <td>${cell(low, 'price-low')}</td>
+      <td>${cell(deep, 'price-low')}</td>
+      <td>${spread ? `<strong>${spread}</strong>` : '<span class="na">—</span>'}</td>
+    </tr>`);
+  });
+
+  tbody.innerHTML = rows.join('');
+  renderAnalysis();
+}
+
+// ---- 分析结论 ----
+function renderAnalysis() {
+  const text = `五大样本省份的分时电价结构差异显著：<strong>浙江省</strong>夏冬季尖峰电价最高（约1.134元/kWh），峰谷价差最大；<strong>山东省</strong>独创"五段式"结构，深谷时段（10:00-15:00）电价低至约0.048元/kWh，对储能和光伏消纳具有极强的引导作用；<strong>江苏省</strong>和<strong>广东省</strong>采用较为传统的尖-峰-平-谷四段制，价格居中；<strong>内蒙古</strong>蒙西、蒙东电网价格水平整体偏低（谷段约0.28-0.30元/kWh），反映其能源资源禀赋优势。总体而言，东部沿海省份的峰谷价差普遍高于中西部地区，工商业用户优化用电策略的空间更大。`;
+  document.getElementById('analysisText').innerHTML = text;
+}
+
+// ---- 渲染: 数据源 ----
+function renderSources() {
+  const tbody = document.getElementById('sourceBody');
+  tbody.innerHTML = CACHE.sources.map(s => {
+    const reliabilityMap = { high: '高（官方）', medium: '中（行业媒体）', low: '低（估算）' };
+    const reliabilityClass = s.reliability === 'high' ? 'confirmed' : s.reliability === 'medium' ? 'modeled' : 'estimated';
+    return `<tr>
+      <td>${s.source_name}</td>
+      <td>${s.publish_org}</td>
+      <td>${s.publish_date}</td>
+      <td><span class="status-tag ${reliabilityClass}">${reliabilityMap[s.reliability] || s.reliability}</span></td>
+      <td><a href="${s.source_url}" target="_blank" title="${s.source_url}">查看原文</a></td>
+    </tr>`;
+  }).join('');
+}
+
+// ---- 渲染: 缺失数据 ----
+function renderMissingData() {
+  const container = document.getElementById('missingContainer');
+  const data = CACHE.missingData || [];
+  if (!data.length) {
+    container.innerHTML = '<div class="empty-state">暂无缺失数据记录</div>';
+    return;
+  }
+  container.innerHTML = data.map(m => `
+    <div class="missing-card">
+      <h5>${m.description}</h5>
+      <p>缺失字段: ${m.missing_fields || '—'}</p>
+      <p>原因: ${m.reason || '—'}</p>
+      ${m.search_process ? `<p>检索过程: ${m.search_process}</p>` : ''}
+    </div>
+  `).join('');
+}
+
+// ---- 省份选择 ----
+function selectProvince(id) {
+  document.querySelectorAll('.province-card').forEach(c => c.classList.remove('active'));
+  const card = document.querySelector(`.province-card[data-id="${id}"]`);
+  if (card) card.classList.add('active');
+  // Scroll to comparison
+  document.getElementById('comparison').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ---- 图表: 24小时曲线 ----
+function buildChartData(regionId, userType, season) {
+  const hourly = {};
+  for (let h = 0; h < 24; h++) hourly[h] = null;
+
+  const points = CACHE.pricePoints.filter(pp =>
+    pp.region_id === regionId && pp.user_type === userType && pp.season_type === season
+  );
+  points.forEach(pp => { hourly[pp.hour] = pp.price_value; });
+
+  return Object.values(hourly);
+}
+
+function renderChart() {
+  const userType = document.getElementById('curveUserType').value;
+  const season = document.getElementById('curveSeason').value;
+  const provinces = CACHE.regions.filter(r => r.level === 'province');
+
+  const labels = Array.from({length: 24}, (_, i) => `${String(i).padStart(2,'0')}:00`);
+  const datasets = provinces.map((p, i) => {
+    const data = buildChartData(p.id, userType, season);
+    return {
+      label: p.name,
+      data: data,
+      borderColor: PROVINCE_COLORS[i % PROVINCE_COLORS.length],
+      backgroundColor: PROVINCE_COLORS[i % PROVINCE_COLORS.length] + '20',
+      borderWidth: 2.5,
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      tension: 0.3,
+      fill: false,
+      hidden: false
+    };
+  });
+
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: { intersect: false, mode: 'nearest' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => `时间: ${items[0].label}`,
+            label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(4) || '—'} 元/kWh`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 10 }, maxRotation: 45 }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#f0eeea' },
+          ticks: {
+            font: { size: 10 },
+            callback: (v) => v.toFixed(2)
+          },
+          title: { display: true, text: '元/kWh', font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  // Custom legend
+  const legendEl = document.getElementById('chartLegend');
+  legendEl.innerHTML = datasets.map((ds, i) => {
+    const color = PROVINCE_COLORS[i % PROVINCE_COLORS.length];
+    return `<span class="chart-legend-item" data-index="${i}" onclick="toggleDataset(${i})">
+      <span class="dot" style="background:${color}"></span> ${ds.label}
+    </span>`;
+  }).join('');
+
+  document.getElementById('curveProvinceLabel').textContent = `${season} ${userType}`;
+}
+
+function toggleDataset(index) {
+  const meta = chartInstance.getDatasetMeta(index);
+  meta.hidden = !meta.hidden;
+  chartInstance.update();
+  const item = document.querySelectorAll('.chart-legend-item')[index];
+  item.classList.toggle('disabled');
+}
+
+// ---- 应用初始化 ----
+async function initApp() {
+  // Add loading overlay
+  const mainEl = document.querySelector('.app-main');
+
+  try {
+    await loadConfig();
+    await loadAllData();
+  } catch(e) {
+    mainEl.innerHTML = `<div class="error-msg">数据加载失败: ${e.message}。请确保通过 HTTP 服务器访问页面，而非直接打开文件。</div>`;
+    return;
+  }
+
+  renderOverview();
+  renderProvinceCards();
+  renderComparison();
+  renderSources();
+  renderMissingData();
+  renderChart();
+
+  // Event listeners for chart filters
+  document.getElementById('curveUserType').addEventListener('change', renderChart);
+  document.getElementById('curveSeason').addEventListener('change', renderChart);
+
+  // Show the content
+  document.body.style.opacity = '1';
+}
+
+// ---- 启动 ----
+document.addEventListener('DOMContentLoaded', initApp);
+</script>
+
+</body>
+</html>
