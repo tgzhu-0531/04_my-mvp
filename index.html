@@ -27,7 +27,7 @@
             padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.6);
         }
 
-        .portal-section { padding: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .portal-section { padding: 0; flex: 1; display: flex; flex-direction: column; }
         .portal-desc { text-align: center; margin-bottom: 36px; }
         .portal-desc h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
         .portal-desc p { color: var(--text-secondary); font-size: 0.9rem; }
@@ -67,7 +67,6 @@
         .agent-card.disabled { opacity: 0.5; cursor: default; }
         .agent-card.disabled:hover { transform: none; box-shadow: none; }
 
-        /* 三类 Agent 切换标签 */
         .category-tabs {
             display: flex; justify-content: center; gap: 6px;
             margin-bottom: 24px; padding: 5px;
@@ -116,7 +115,7 @@
         <div class="container">
             <div class="category-tabs">
                 <button class="cat-tab active" data-cat="domestic">国内商业</button>
-                <button class="cat-tab disabled" disabled>国外商业</button>
+                <button class="cat-tab" data-cat="foreign">国外商业</button>
                 <button class="cat-tab disabled" disabled>开源</button>
             </div>
             <div class="cat-panel active" id="panel-domestic">
@@ -248,6 +247,88 @@
 
             </div>
             </div>
+
+            <!-- ========== 国外商业 ========== -->
+            <div class="cat-panel" id="panel-foreign">
+            <div class="agent-grid">
+
+                <!-- ChatGPT / Codex -->
+                <a href="10_ChatGPT/index.html" class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-icon" style="background:#1DB954;">C</div>
+                        <div>
+                            <div class="agent-name">ChatGPT (Codex)</div>
+                            <div class="agent-by">OpenAI · Deepseek-v4-flash</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag green">✅ 已部署</span>
+                            <span class="agent-tag">CSV/SQLite 双模</span>
+                            <span class="agent-tag">Chart.js</span>
+                        </div>
+                        <div class="agent-status">
+                            5 省（粤/苏/鲁/浙/蒙）一般工商业分时电价对比、24h 价格曲线叠加分析、
+                            峰谷价差柱状图、省际对比表 + 一句话分析、数据源全链路追溯、缺失透明说明。
+                            CSV 静态展示 / SQLite 后端验证双模式，config.json 配置驱动切换。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer">
+                        <span>访问 Codex 版本</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <!-- Claude Desktop -->
+                <a href="11_Claude/index.html" class="agent-card">
+                    <div class="agent-card-header">
+                        <div class="agent-icon" style="background:#D97757;">C</div>
+                        <div>
+                            <div class="agent-name">Claude Desktop</div>
+                            <div class="agent-by">Anthropic · Claude Haiku 4.5 (deepseek-v4-flash)</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag green">✅ 已部署</span>
+                            <span class="agent-tag">CSV/SQLite 双模</span>
+                            <span class="agent-tag">Chart.js</span>
+                        </div>
+                        <div class="agent-status">
+                            5省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线叠图分析、省际价格对比表 + 一句话分析结论、
+                            数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer">
+                        <span>访问 Claude 版本</span>
+                        <span>→</span>
+                    </div>
+                </a>
+
+                <!-- Gemini -->
+                <div class="agent-card disabled">
+                    <div class="agent-card-header">
+                        <div class="agent-icon" style="background:#4285F4;">G</div>
+                        <div>
+                            <div class="agent-name">Gemini</div>
+                            <div class="agent-by">Google · Gemini 2.5 Pro / Gemini 3</div>
+                        </div>
+                    </div>
+                    <div class="agent-card-body">
+                        <div class="agent-tags">
+                            <span class="agent-tag gray">⏸ 未部署</span>
+                        </div>
+                        <div class="agent-status">
+                            Google 多模态编码 Agent，Gemini Code Assist 集成于 20+ IDE，
+                            Google Cloud 原生产品矩阵，支持多语言代码生成与审查、
+                            BigQuery / Cloud Run 等云服务深度集成。在本验证平台上暂无部署。
+                        </div>
+                    </div>
+                    <div class="agent-card-footer" style="color:var(--text-muted);">待部署</div>
+                </div>
+
+            </div>
+            </div>
             </div>
         </div>
     </section>
@@ -259,5 +340,25 @@
         </div>
     </footer>
 
+    <script>
+    // Tab switching
+    document.querySelectorAll('.cat-tab:not(.disabled)').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            var cat = this.dataset.cat;
+            // Update tab active state
+            document.querySelectorAll('.cat-tab').forEach(function(t) {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            // Update panel visibility
+            document.querySelectorAll('.cat-panel').forEach(function(p) {
+                p.classList.remove('active');
+            });
+            var panel = document.getElementById('panel-' + cat);
+            if (panel) panel.classList.add('active');
+        });
+    });
+    </script>
 </body>
 </html>
+
