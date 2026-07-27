@@ -507,9 +507,9 @@ function renderDemo(type) {
 }
 
 var ARTICLES = [
-  {num:"01", title:"ChatGPT Codex 路由接入 DeepSeek", url:"https://mp.weixin.qq.com/s/Hu7Bs3aORYsQTqm9CKChjg", summary:"Codex 官方额度耗尽后，通过 cc-switch 本地代理将后端模型路由到 DeepSeek，无需等待额度重置。Codex 是 Agent 框架，模型可以替换。", tags:["Code Agent","模型路由"]},
-  {num:"02", title:"Git + GitHub VS Gitee：AI 资产版本管理", url:"https://mp.weixin.qq.com/s/-Ylho035nNp8lKcH3xYHbQ", summary:"Skill/文章/图床分开管理，Git 记录版本、GitHub 做主仓、Gitee 做镜像、jsDelivr 做 CDN——让每份修改可追踪、每版资产可恢复。", tags:["AI 工程","版本管理","Git"]},
-  {num:"03", title:"FDE 岗位解读", url:"https://mp.weixin.qq.com/s/zv4wHYstQxVt1SnqITORjQ", summary:"FDE（前线部署工程师）成为 2026 年 AI 最热岗位。不是在办公室写代码，而是在业务现场发现真实问题、完成系统集成、对端到端结果负责。", tags:["AI 工程","岗位","FDE"]},
+  {num:"01", title:"FDE 岗位解读", url:"https://mp.weixin.qq.com/s/zv4wHYstQxVt1SnqITORjQ", summary:"FDE（前线部署工程师）成为 2026 年 AI 最热岗位。不是在办公室写代码，而是在业务现场发现真实问题、完成系统集成、对端到端结果负责。", tags:["AI 工程","岗位","FDE"], pinned:true},
+  {num:"02", title:"ChatGPT Codex 路由接入 DeepSeek", url:"https://mp.weixin.qq.com/s/Hu7Bs3aORYsQTqm9CKChjg", summary:"Codex 官方额度耗尽后，通过 cc-switch 本地代理将后端模型路由到 DeepSeek，无需等待额度重置。Codex 是 Agent 框架，模型可以替换。", tags:["Code Agent","模型路由"]},
+  {num:"03", title:"Git + GitHub VS Gitee：AI 资产版本管理", url:"https://mp.weixin.qq.com/s/-Ylho035nNp8lKcH3xYHbQ", summary:"Skill/文章/图床分开管理，Git 记录版本、GitHub 做主仓、Gitee 做镜像、jsDelivr 做 CDN——让每份修改可追踪、每版资产可恢复。", tags:["AI 工程","版本管理","Git"]},
   {num:"04", title:"Agent 产品与运行框架地图", url:"https://mp.weixin.qq.com/s/_pwcdnssK_KO2WXBH0BX_A", summary:"梳理国内/外商业 Agent 产品、开源 Agent 与构建框架。Agent ≈ 大模型 + Harness，研究重点应从模型能力转向任务完成效果。", tags:["AI 工程","Agent 框架","产品地图"]}
 ];
 
@@ -522,8 +522,9 @@ function renderArticles() {
     var a = ARTICLES[i];
     var tags = "";
     for (var j = 0; j < a.tags.length; j++) tags += '<span class="pc-tag">' + a.tags[j] + '</span>';
+    var pinBadge = a.pinned ? ' <span style="display:inline-block;background:#D97706;color:#fff;font-size:0.65rem;font-weight:600;padding:2px 10px;border-radius:10px;margin-left:6px;vertical-align:middle;">置顶</span>' : '';
     list.insertAdjacentHTML("beforeend",
-      '<a href="' + a.url + '" target="_blank" rel="noopener" class="article-item"><div class="a-num">' + a.num + '</div><div class="a-title">' + a.title + '</div><div class="a-summary">' + a.summary + '</div><div class="a-tags">' + tags + '</div></a>');
+      '<a href="' + a.url + '" target="_blank" rel="noopener" class="article-item"><div class="a-num">' + a.num + '</div><div class="a-title">' + a.title + pinBadge + '</div><div class="a-summary">' + a.summary + '</div><div class="a-tags">' + tags + '</div></a>');
   }
 }
 
