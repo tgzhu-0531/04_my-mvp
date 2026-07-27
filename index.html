@@ -328,7 +328,9 @@ body {
 .demo-area .demo-desc { margin-top: 24px; font-size: 0.85rem; color: #6B5F4E; line-height: 1.8; background: #fff; border: 1px solid #EDE8DF; border-radius: 8px; padding: 20px 24px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
 
 /* ===== Article list (AI随笔) ===== */
-.article-list { max-width: 780px; grid-column: 1 / -1; justify-self: center; }
+.article-list { max-width: 780px; grid-column: 1 / -1; justify-self: center; width: 100%; min-height: 300px; }
+.article-noresult { display: none; text-align: center; padding: 50px 20px; color: #B0A694; font-size: 0.85rem; }
+.article-noresult.show { display: block; }
 .article-item {
   display: block; text-decoration: none; color: inherit;
   background: #fff; border: 1px solid #E6DFD3; border-radius: 12px;
@@ -340,6 +342,58 @@ body {
 .article-item .a-title { font-size: 1rem; font-weight: 700; color: #00A7CB; margin-bottom: 4px; }
 .article-item .a-summary { font-size: 0.82rem; color: #6B5F4E; line-height: 1.7; }
 .article-item .a-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.article-search {
+  margin-bottom: 16px;
+  width: 100%;
+  position: relative;
+}
+.article-search .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.article-search input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 40px 10px 38px;
+  border: 1px solid #E6DFD3;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #2C2416;
+  background: #F8F6F3;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.article-search input:focus {
+  border-color: #00A7CB;
+  background: #fff;
+}
+.article-search input::placeholder { color: #B0A694; }
+.article-search .clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #B0A694;
+  cursor: pointer;
+  padding: 4px 6px;
+  line-height: 1;
+}
+.article-search .clear-btn:hover { color: #2C2416; }
+.article-search.has-text .clear-btn { display: block; }
+.article-item.hidden { display: none; }
 .pc-footer {
   padding: 10px 18px;
   border-top: 1px solid #EDE8DF;
@@ -517,15 +571,41 @@ function renderArticles() {
   var g = document.getElementById("projectGrid");
   if (!g) return;
   g.innerHTML = '<div class="article-list"></div>';
-  var list = g.firstChild;
+  renderArticleList(g.firstChild);
+}
+
+function renderArticleList(container) {
+  container.innerHTML = '<div class="article-search"><span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg></span><input type="text" id="articleSearch" placeholder="搜索文章标题、摘要或标签…" autocomplete="off" oninput="filterArticles();this.parentElement.classList.toggle(\'has-text\',this.value.length>0)"><button class="clear-btn" onclick="document.getElementById(\'articleSearch\').value=\'\';document.getElementById(\'articleSearch\').parentElement.classList.remove(\'has-text\');filterArticles();document.getElementById(\'articleSearch\').focus()">&#10005;</button></div><div class="article-noresult" id="articleNoResult">&#128233; 未找到相关文章</div>';
   for (var i = 0; i < ARTICLES.length; i++) {
     var a = ARTICLES[i];
     var tags = "";
     for (var j = 0; j < a.tags.length; j++) tags += '<span class="pc-tag">' + a.tags[j] + '</span>';
     var pinBadge = a.pinned ? ' <span style="display:inline-block;background:#D97706;color:#fff;font-size:0.65rem;font-weight:600;padding:2px 10px;border-radius:10px;margin-left:6px;vertical-align:middle;">置顶</span>' : '';
-    list.insertAdjacentHTML("beforeend",
-      '<a href="' + a.url + '" target="_blank" rel="noopener" class="article-item"><div class="a-num">' + a.num + '</div><div class="a-title">' + a.title + pinBadge + '</div><div class="a-summary">' + a.summary + '</div><div class="a-tags">' + tags + '</div></a>');
+    container.insertAdjacentHTML("beforeend",
+      '<a href="' + a.url + '" target="_blank" rel="noopener" class="article-item" data-idx="' + i + '"><div class="a-num">' + a.num + '</div><div class="a-title">' + a.title + pinBadge + '</div><div class="a-summary">' + a.summary + '</div><div class="a-tags">' + tags + '</div></a>');
   }
+}
+
+function filterArticles() {
+  var q = document.getElementById("articleSearch").value.toLowerCase().trim();
+  var items = document.querySelectorAll(".article-item");
+  var visible = 0;
+  for (var i = 0; i < items.length; i++) {
+    var el = items[i];
+    if (!q) {
+      el.classList.remove("hidden");
+      visible++;
+      continue;
+    }
+    var title = (ARTICLES[i].title || "").toLowerCase();
+    var summary = (ARTICLES[i].summary || "").toLowerCase();
+    var tags = (ARTICLES[i].tags || []).join(" ").toLowerCase();
+    var match = title.indexOf(q) >= 0 || summary.indexOf(q) >= 0 || tags.indexOf(q) >= 0;
+    el.classList.toggle("hidden", !match);
+    if (match) visible++;
+  }
+  var nr = document.getElementById("articleNoResult");
+  if (nr) nr.classList.toggle("show", q.length > 0 && visible === 0);
 }
 
 function renderProjects(list) {
