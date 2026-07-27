@@ -1,0 +1,108 @@
+/* 城市分时电价观察站 — OpenWorker 版 */
+:root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #DBEAFE;
+    --accent: #F59E0B;
+    --success: #10B981;
+    --danger: #EF4444;
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --text: #1E293B;
+    --text-secondary: #64748B;
+    --border: #E2E8F0;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-hover: 0 4px 6px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.08);
+    --radius: 10px;
+    --radius-sm: 6px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1E3A5F,#2563EB);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 20px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{font-size:24px}
+.logo h1{font-size:17px;font-weight:700;letter-spacing:.3px}
+.subtitle{font-size:10px;opacity:.65}
+.back-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border:1px solid rgba(255,255,255,.25);border-radius:14px;color:rgba(255,255,255,.75);font-size:12px;font-weight:500;text-decoration:none;transition:.2s}
+.back-btn:hover{color:#fff;border-color:#fff;background:rgba(255,255,255,.1)}
+.nav{display:flex;gap:2px}
+.nav-item{padding:6px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;color:rgba(255,255,255,.65);text-decoration:none;cursor:pointer;transition:.15s}
+.nav-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.2);color:#fff}
+
+/* Main */
+.main{max-width:1400px;margin:0 auto;padding:20px}
+.tab{display:none}
+.tab.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px;transition:var(--shadow)}
+.card:hover{box-shadow:var(--shadow-hover)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-header h3{font-size:15px;font-weight:700;color:var(--primary-dark)}
+.badge{background:var(--primary-light);color:var(--primary);font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;white-space:nowrap}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;text-align:center;border-left:3px solid var(--primary)}.stat-card:nth-child(2){border-left-color:var(--accent)}.stat-card:nth-child(3){border-left-color:var(--success)}.stat-card:nth-child(4){border-left-color:var(--danger)}.stat-card:nth-child(5){border-left-color:#8B5CF6}
+.stat-num{font-size:28px;font-weight:700;color:var(--primary-dark)}
+.stat-label{font-size:12px;color:var(--text-secondary);margin-top:2px}
+
+/* Chart grid */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:860px){.chart-grid{grid-template-columns:1fr}}
+.chart-box{position:relative;height:320px}
+.chart-toolbar{margin-bottom:8px}
+
+/* City grid */
+.city-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.city-card{background:var(--bg);border-radius:var(--radius-sm);padding:10px;text-align:center;cursor:pointer;border:2px solid transparent;transition:.15s}
+.city-card:hover{border-color:var(--primary);transform:translateY(-1px)}
+.city-card .cc-name{font-weight:600;font-size:13px}
+.city-card .cc-prov{font-size:10px;color:var(--text-secondary)}
+.city-card .cc-grid{font-size:9px;color:var(--primary);margin-top:2px}
+
+/* Filters */
+.filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
+.filter-group{display:flex;flex-direction:column;gap:3px}
+.filter-group label{font-size:11px;font-weight:600;color:var(--text-secondary)}
+select{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:#fff;outline:none}
+select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(37,99,235,.15)}
+.btn{padding:6px 16px;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-secondary:hover{background:#CBD5E1}
+
+/* Table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg);padding:8px 10px;text-align:left;font-weight:600;color:var(--text-secondary);border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--border)}
+tr:hover td{background:var(--primary-light)}
+.empty{text-align:center;padding:24px!important;color:var(--text-secondary)}
+
+/* Sources */
+.source-intro{font-size:12px;color:var(--text-secondary);margin-bottom:12px}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:1px}
+.dot.on{background:var(--success)}.dot.off{background:var(--border)}
+.source-link{color:var(--primary);text-decoration:none;font-size:11px}
+.source-link:hover{text-decoration:underline}
+
+/* Checkbox group for compare */
+.cb-group{display:flex;flex-wrap:wrap;gap:6px}
+.cb-group label{display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;padding:4px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);transition:.15s}
+.cb-group label:hover{border-color:var(--primary)}
+.cb-group label:has(input:checked){border-color:var(--primary);background:var(--primary-light)}
+.cb-group input[type=checkbox]{accent-color:var(--primary)}
+
+/* Footer */
+.footer{background:#1E293B;color:rgba(255,255,255,.5);padding:16px 20px;margin-top:32px;text-align:center;font-size:12px}
+
+/* Loading */
+.loading{text-align:center;padding:40px;color:var(--text-secondary)}
+.spin{width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}

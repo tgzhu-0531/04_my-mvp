@@ -1,380 +1,812 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>AI Work Agent · 分时电价观察站能力验证</title>
-    <link rel="stylesheet" href="01_workbuddy/css/style.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg-body); color: var(--text-primary); line-height: 1.5; display: flex; flex-direction: column; }
-        .portal-hero {
-            background: linear-gradient(135deg, #0A1628 0%, #1A2A4A 50%, #0D2137 100%);
-            color: #fff; padding: 14px 0 16px; text-align: center; position: relative; overflow: hidden;
-        }
-        .portal-hero::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(ellipse at 30% 50%, rgba(0,167,203,0.08) 0%, transparent 70%);
-        }
-        .portal-hero-content { position: relative; z-index: 1; }
-        .portal-hero h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
-        .portal-hero p { color: rgba(255,255,255,0.7); font-size: 0.85rem; max-width: 640px; margin: 2px auto 0; line-height: 1.5; }
-        .portal-hero .badge-row { margin-top: 10px; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
-        .portal-hero .badge-row span {
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-            padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; color: rgba(255,255,255,0.6);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 工程</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: "Noto Serif SC", "Source Han Serif CN", "思源宋体", "PingFang SC", "Microsoft YaHei", Georgia, serif;
+  background: #F7F5F0;
+  color: #2C2416;
+  line-height: 1.7;
+  min-height: 100vh;
+}
 
-        .portal-section { padding: 0; flex: 1; display: flex; flex-direction: column; }
-        .portal-desc { text-align: center; margin-bottom: 36px; }
-        .portal-desc h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
-        .portal-desc p { color: var(--text-secondary); font-size: 0.9rem; }
+/* ===== Top Nav ===== */
+.top-nav {
+  background: rgba(247,245,240,0.94);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #E6DFD3;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 16px;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #2C2416;
+  text-decoration: none;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.nav-brand.active { color: #fff; background: #00A7CB; }
+.nav-links {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex: 1;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #7A6F60;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.nav-links a:hover { color: #2C2416; background: #EDE8DF; }
+.nav-links a.active { color: #fff; background: #5A4A3A; }
 
-        .agent-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1100px; margin: 0 auto; }
-        @media (max-width: 900px) { .agent-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
-        @media (max-width: 600px) { .agent-grid { grid-template-columns: 1fr; gap: 12px; } }
-        .agent-card {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-            padding: 0; overflow: hidden; transition: all 0.25s; display: block;
-        }
-        .agent-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); border-color: var(--primary); }
-        .agent-card-header {
-            padding: 28px 24px 16px; display: flex; align-items: center; gap: 14px;
-            border-bottom: 1px solid var(--border);
-        }
-        .agent-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; color: #fff; flex-shrink: 0; }
-        .agent-icon.wb { background: #00A7CB; }
-        .agent-icon.trae { background: #6366F1; }
-        .agent-icon.qoder { background: #10B981; }
-        .agent-icon.kimi { background: #F59E0B; }
-        .agent-icon.dumate { background: #EF4444; }
-        .agent-name { font-size: 1.15rem; font-weight: 700; }
-        .agent-by { font-size: 0.78rem; color: var(--text-muted); }
-        .agent-card-body { padding: 16px 24px 20px; }
-        .agent-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-        .agent-tag { font-size: 0.72rem; padding: 2px 10px; border-radius: 12px; background: var(--bg-alt); color: var(--text-secondary); }
-        .agent-tag.green { background: rgba(16,185,129,0.12); color: #10B981; }
-        .agent-tag.gray { background: var(--bg-alt); color: var(--text-muted); }
-        .agent-status { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; min-height: 48px; }
-        .agent-card-footer {
-            padding: 14px 24px; border-top: 1px solid var(--border);
-            font-size: 0.88rem; font-weight: 600; color: var(--primary);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .agent-card:hover .agent-card-footer { color: var(--primary-dark); }
-        .agent-card.disabled { opacity: 0.5; cursor: default; }
-        .agent-card.disabled:hover { transform: none; box-shadow: none; }
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #7A6F60;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
 
-        .category-tabs {
-            display: flex; justify-content: center; gap: 6px;
-            margin-bottom: 24px; padding: 5px;
-            background: var(--bg-alt); border-radius: 28px;
-            max-width: 380px; margin: 0 auto 24px;
-        }
-        .cat-tab {
-            padding: 7px 22px; border: none; border-radius: 22px;
-            background: transparent; color: var(--text-secondary);
-            font-size: 0.88rem; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
-        }
-        .cat-tab.active {
-            background: #fff; color: var(--primary);
-            box-shadow: 0 2px 8px rgba(0,167,203,0.15);
-        }
-        .cat-tab.active:hover { transform: none; }
-        .cat-tab:disabled, .cat-tab.disabled {
-            color: var(--text-secondary); opacity: 0.75; cursor: not-allowed;
-        }
-        .cat-panel { display: none; }
-        .cat-panel.active { display: block; }
+/* ===== Container ===== */
+.container { max-width: 1100px; margin: 0 auto; padding: 28px 32px 0; }
 
-        @media (max-width: 768px) {
-            .portal-hero h1 { font-size: 1.4rem; }
-        }
-    </style>
+/* ===== Home page ===== */
+.home-hero {
+  text-align: center;
+  margin-bottom: 20px;
+  max-width: 740px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.home-hero h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #2C2416;
+  margin-bottom: 14px;
+}
+.home-hero .subtitle {
+  font-size: 1rem;
+  color: #6B5F4E;
+  line-height: 1.8;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  margin-bottom: 6px;
+}
+.layer-list {
+  display: inline-block;
+  text-align: left;
+  margin-top: 4px;
+}
+.layer-item {
+  font-size: 0.95rem;
+  line-height: 2.4;
+  color: #3A3020;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.layer-tag {
+  display: inline-block;
+  width: 36px;
+  height: 26px;
+  line-height: 26px;
+  text-align: center;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #2C2416;
+  margin-right: 12px;
+  letter-spacing: 0;
+}
+.layer-item .hl { color: #2C2416; font-weight: 600; font-size: 1rem; }
+.title-link { color: #00A7CB; text-decoration: underline; text-decoration-color: rgba(0,167,203,0.3); text-underline-offset: 3px; }
+.title-link:hover { color: #2C2416; text-decoration-color: #A69B8C; }
+.home-image {
+  text-align: center;
+  max-width: 760px;
+  margin: 16px auto 0;
+}
+.home-image img {
+  width: 100%;
+  max-height: 56vh;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 20px rgba(44,36,22,0.08);
+  object-fit: contain;
+}
+.home-image .caption {
+  font-size: 0.75rem;
+  color: #A69B8C;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* ===== Work Agent section ===== */
+.branch-header { margin-bottom: 20px; }
+.branch-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #2C2416;
+}
+.status-pill {
+  display: inline-block;
+  background: #00A7CB;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-left: 10px;
+  vertical-align: middle;
+  letter-spacing: 0;
+}
+.branch-header p {
+  font-size: 0.9rem;
+  color: #8A7F70;
+  margin-top: 4px;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.7;
+}
+
+.sub-tabs {
+  display: flex; gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: #EDE8DF;
+  border-radius: 8px;
+  width: fit-content;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sub-tabs::-webkit-scrollbar { display: none; }
+.review-link {
+  margin-top: 14px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.review-link a {
+  color: #00A7CB;
+  text-decoration: none;
+  font-weight: 500;
+}
+.review-link a:hover {
+  text-decoration: underline;
+  text-decoration-color: #00A7CB;
+}
+.review-link a.hidden { display: none; }
+.sub-tab {
+  padding: 4px 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.8rem; font-weight: 500;
+  background: transparent; color: #7A6F60;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.sub-tab.active {
+  background: #fff;
+  color: #00A7CB;
+  border-color: #00A7CB;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,167,203,0.15);
+}
+.sub-tab:hover { color: #2C2416; }
+
+.stats-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.stat-pill {
+  font-size: 0.75rem; padding: 4px 14px; border-radius: 16px;
+  background: #EDE8DF; color: #6B5F4E;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.stat-pill span { font-weight: 700; color: #2C2416; }
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 960px) { .project-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .project-grid { grid-template-columns: 1fr; } }
+
+.project-card {
+  background: #fff;
+  border: 1px solid #E6DFD3;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.2s;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.project-card:hover {
+  box-shadow: 0 4px 16px rgba(44,36,22,0.07);
+  transform: translateY(-3px);
+  border-color: #B0A694;
+}
+.project-card.disabled {
+  cursor: default;
+}
+.project-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #E6DFD3;
+}
+
+.pc-header {
+  padding: 18px 18px 12px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid #EDE8DF;
+}
+.pc-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; font-weight: 700; color: #fff; flex-shrink: 0;
+}
+.pc-name { font-weight: 700; font-size: 0.95rem; color: #00A7CB; }
+.pc-by {
+  font-size: 0.7rem; color: #A69B8C; margin-top: 0;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.pc-body { padding: 12px 18px 14px; }
+.pc-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+.pc-tag {
+  font-size: 0.68rem; padding: 2px 10px; border-radius: 10px;
+  background: #F0ECE5; color: #6B5F4E;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.pc-tag.green { background: #EAF4E8; color: #3A7A44; }
+.pc-tag.gray { background: #F5F2EC; color: #999080; }
+.pc-desc {
+  font-size: 0.82rem; color: #6B5F4E; line-height: 1.7;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* ===== Topic grid (数据聚合) ===== */
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 960px) { .topic-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .topic-grid { grid-template-columns: 1fr; } }
+
+.topic-card {
+  background: #fff;
+  border: 1px solid #E6DFD3;
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: default;
+}
+.topic-card .t-icon { font-size: 2rem; margin-bottom: 8px; }
+.topic-card .t-name { font-weight: 700; font-size: 0.95rem; color: #2C2416; margin-bottom: 4px; }
+.topic-card .t-status { font-size: 0.72rem; color: #B0A694; }
+
+/* ===== Demo area (办公Skill等) ===== */
+.demo-area { max-width: 860px; margin: 0 auto; }
+.demo-area .demo-gif { width: 100%; max-width: 800px; height: auto; border-radius: 8px; box-shadow: 0 2px 12px rgba(44,36,22,0.06); display: block; margin: 0 auto; }
+.demo-area .demo-caption { text-align: center; font-size: 0.78rem; color: #A69B8C; margin-top: 10px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.demo-area .demo-desc { margin-top: 24px; font-size: 0.85rem; color: #6B5F4E; line-height: 1.8; background: #fff; border: 1px solid #EDE8DF; border-radius: 8px; padding: 20px 24px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+
+/* ===== Article list (AI随笔) ===== */
+.article-list { max-width: 780px; grid-column: 1 / -1; justify-self: center; }
+.article-item {
+  display: block; text-decoration: none; color: inherit;
+  background: #fff; border: 1px solid #E6DFD3; border-radius: 12px;
+  padding: 18px 22px; margin-bottom: 14px;
+  transition: all 0.2s;
+}
+.article-item:hover { box-shadow: 0 3px 12px rgba(44,36,22,0.05); border-color: #B0A694; }
+.article-item .a-num { font-size: 0.72rem; color: #B0A694; font-weight: 500; margin-bottom: 2px; }
+.article-item .a-title { font-size: 1rem; font-weight: 700; color: #00A7CB; margin-bottom: 4px; }
+.article-item .a-summary { font-size: 0.82rem; color: #6B5F4E; line-height: 1.7; }
+.article-item .a-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+.pc-footer {
+  padding: 10px 18px;
+  border-top: 1px solid #EDE8DF;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #00A7CB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.project-card:hover .pc-footer { color: #2C2416; }
+.pc-footer .arrow { font-size: 1rem; }
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 56px; left: 0; right: 0;
+    background: #F7F5F0;
+    border-bottom: 1px solid #E6DFD3;
+    padding: 8px 16px;
+    flex-direction: column;
+    gap: 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 10px 12px; font-size: 0.9rem; }
+  .container { padding: 16px 16px; }
+  .home-hero h1 { font-size: 1.4rem; }
+}
+</style>
 </head>
 <body>
 
-    <section class="portal-hero">
-        <div class="container portal-hero-content">
-            <h1>🤖 AI Work Agent · 能力验证</h1>
-            <p>基于同一份 PRD 需求文档、不同 AI Work Agent 独立搭建</p>
-            <p style="font-size:0.9rem;margin-top:4px;">"城市分时电价观察站"MVP 对比展示</p>
-            <div class="badge-row">
-                <span>📋 同一份 PRD</span>
-                <span>📊 5 省电价数据</span>
-                <span>⚙️ 独立实现</span>
-                <span>🔗 来源可追溯</span>
-            </div>
-        </div>
-    </section>
+<nav class="top-nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <span class="icon">🧪</span>
+      <span>AI 工程</span>
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="菜单">☰</button>
+    <div class="nav-links" id="navLinks">
+      <a href="#">Work Agent</a>
+      <a href="#">Code Agent</a>
+      <a href="#">数据聚合</a>
+      <a href="#">办公 Skill</a>
+      <a href="#">PRD Skill</a>
+      <a href="#">原型 Skill</a>
+      <a href="#">AI 笔记</a>
+    </div>
+  </div>
+</nav>
 
-    <section class="portal-section">
-        <div class="container">
-            <div class="category-tabs">
-                <button class="cat-tab active" data-cat="domestic">国内商业</button>
-                <button class="cat-tab" data-cat="foreign">国外商业</button>
-                <button class="cat-tab disabled" disabled>开源</button>
-            </div>
-            <div class="cat-panel active" id="panel-domestic">
-            <div class="agent-grid">
+<!-- ===== Home page ===== -->
+<div class="container" id="homeSection">
+  <div class="home-hero">
+    <h1><a href="https://mp.weixin.qq.com/s/HdRTRzrRcqvkPX5k1P2hJA" target="_blank" rel="noopener" class="title-link">AI 工程化发展演进 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg></a></h1>
+    <p class="subtitle">
+      AI 的竞争，正在从"谁的模型更会回答"，走向"谁能把模型组织成一个可靠、可控、可持续交付的系统"。
+    </p>
+    <div class="layer-list">
+      <div class="layer-item"><span class="layer-tag" style="background:#D6CCC0;">L1</span> Prompt 解决<span class="hl">"怎么说"</span></div>
+      <div class="layer-item"><span class="layer-tag" style="background:#C5B8A8;">L2</span> Context 解决<span class="hl">"看什么"</span></div>
+      <div class="layer-item"><span class="layer-tag" style="background:#B3A490;">L3</span> Harness 解决<span class="hl">"怎么安全地做"</span></div>
+      <div class="layer-item"><span class="layer-tag" style="background:#A0907A;">L4</span> Loop 解决<span class="hl">"怎么持续推进"</span></div>
+      <div class="layer-item"><span class="layer-tag" style="background:#8A7A64;">L5</span> Meta-Loop 解决<span class="hl">"怎么让系统持续变好"</span></div>
+    </div>
+  </div>
+  <div class="home-image">
+    <img src="assets/AI工程全景图.png" alt="AI 工程全景图">
+    <p class="caption">AI 工程化全景 · 四层协作体系</p>
+  </div>
+</div>
 
-                <!-- WorkBuddy -->
-                <a href="01_workbuddy/workbuddy.html" class="agent-card">
-                    <div class="agent-card-header">
-                        <div class="agent-icon wb">W</div>
-                        <div>
-                            <div class="agent-name">WorkBuddy</div>
-                            <div class="agent-by">CodeBuddy · Deepseek-v4-flash</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag green">✅ 已部署</span>
-                            <span class="agent-tag">静态 SPA</span>
-                            <span class="agent-tag">Chart.js</span>
-                        </div>
-                        <div class="agent-status">
-                            纯静态 SPA 架构（Hash 路由）、CSV/SQLite 双数据源、
-                            5 省对比表 + 24h 叠图分析、可折叠分区、IIS/GitHub Pages 兼容。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer">
-                        <span>访问 WorkBuddy 版本</span>
-                        <span>→</span>
-                    </div>
-                </a>
+<!-- ===== Work Agent section ===== -->
+<div class="container" id="agentSection" style="display:none;">
+  <div class="branch-header">
+    <h1>Work Agent 能力</h1>
+    <p>基于同一份 PRD、不同 AI Work Agent 独立搭建"城市分时电价观察站"MVP</p>
+  </div>
+  <div class="sub-tabs">
+    <button class="sub-tab active" onclick="filterProjects('domestic')">国内商业 (5)</button>
+    <button class="sub-tab" onclick="filterProjects('foreign')">国外商业 (3)</button>
+    <button class="sub-tab" onclick="filterProjects('opensource')">开源 (3)</button>
+  </div>
+  <div class="review-link"><a href="https://mp.weixin.qq.com/s/qwmfo8iUObUebva1Iqd86A" target="_blank" rel="noopener" id="reviewLink">国内商业 Agent 详细评测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg></a></div>
+  <div class="project-grid" id="projectGrid"></div>
+  <!-- Demo area for skill pages -->
+  <div class="demo-area" id="demoArea" style="display:none;"></div>
+</div>
 
-                <!-- TRAE Work -->
-                <a href="02_TraeWork/index.html" class="agent-card">
-                    <div class="agent-card-header">
-                        <div class="agent-icon trae">T</div>
-                        <div>
-                            <div class="agent-name">TRAE Work</div>
-                            <div class="agent-by">TRAE AI · Deepseek-v4-flash</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag green">✅ 已部署</span>
-                            <span class="agent-tag">CSV/SQLite 双模</span>
-                            <span class="agent-tag">Chart.js</span>
-                        </div>
-                        <div class="agent-status">
-                            5 省工商业分时电价对比、24h 叠图分析、价格对比表、数据源追溯、缺失数据说明。
-                            CSV 静态展示 / SQLite 后端验证双模式，配置驱动切换。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer">
-                        <span>访问 TRAE Work 版本</span>
-                        <span>→</span>
-                    </div>
-                </a>
+<script>
+var PROJECTS = [
+  {name:"WorkBuddy", by:"CodeBuddy . DeepSeek-V4-Flash", icon:"W", color:"#00A7CB", status:"deployed", link:"01_workbuddy/workbuddy.html", tags:["CSV/SQLite","静态 SPA","Chart.js"], desc:"纯静态 SPA 架构（Hash 路由）、CSV/SQLite 双数据源、5 省对比表 + 24h 叠图分析、可折叠分区、IIS/GitHub Pages 兼容。"},
+  {name:"TRAE Work", by:"TRAE AI . DeepSeek-V4-Flash", icon:"T", color:"#6366F1", status:"deployed", link:"02_TraeWork/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省工商业分时电价对比、24h 叠图分析、价格对比表、数据源追溯、缺失数据说明。CSV 静态展示 / SQLite 后端验证双模式，配置驱动切换。"},
+  {name:"QoderWork", by:"Qoder . DeepSeek-V4-Flash", icon:"Q", color:"#10B981", status:"deployed", link:"03_QoderWork/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省工商业分时电价数据（粤/苏/鲁/浙/蒙）、峰谷价差对比、省际柱状图分析、数据源追溯、缺失说明。CSV 静态展示 / SQLite 后端验证，配置驱动切换。"},
+  {name:"Kimi Work", by:"Moonshot AI . K2.6/K3", icon:"K", color:"#F59E0B", status:"failed", link:"", tags:[], desc:"个人版环境下多次资源排队 / 卡顿，本轮未完成实测，暂不纳入交付质量评分。"},
+  {name:"DuMate", by:"百度 . 模型未知 . v1.0.61", icon:"D", color:"#EF4444", status:"deployed", link:"05_DuMate/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、五段式分类柱状图、峰谷价差分析、数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。"},
+  {name:"ChatGPT Work", by:"OpenAI . DeepSeek-V4-Flash", icon:"C", color:"#10A37F", status:"deployed", link:"10_ChatGPT/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）一般工商业分时电价对比、24h 价格曲线叠加分析、峰谷价差柱状图、省际对比表 + 一句话分析、数据源全链路追溯、缺失透明说明。"},
+  {name:"Claude Desktop", by:"Anthropic . DeepSeek-V4-Flash", icon:"C", color:"#D97757", status:"deployed", link:"11_Claude/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线叠图分析、省际价格对比表 + 一句话分析结论、数据源全链路追溯、缺失数据透明标注。"},
+  {name:"Gemini", by:"Google . Gemini 2.5 Pro/3", icon:"G", color:"#4285F4", status:"failed", link:"", tags:[], desc:"Google 多模态编码 Agent，Code Assist 集成 20+ IDE，Google Cloud 原生产品矩阵。未部署。"},
+  {name:"OpenClaw", by:"社区驱动 . DeepSeek-V4-Flash", icon:"C", color:"#E53E3E", status:"deployed", link:"21_OpenClaw/01_PriceObservatory/site/index.html", github:"https://github.com/agentkernel/openclaw-desktop/releases/latest", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）分时电价查询对比站、柱状图对比 + 数据源追溯 + 缺失说明。CSV 静态 / SQLite 双模式，config.json 切换。"},
+  {name:"Hermes Agent", by:"Nous Research . DeepSeek-V4-Flash", icon:"H", color:"#6B46C1", status:"deployed", link:"22_Hermes/index.html", github:"https://github.com/NousResearch/hermes-agent", tags:["CSV/SQLite","Canvas API"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线图+对比表+数据源追溯+缺失标注、config.json 配置驱动 CSV/SQLite 双模式切换。"},
+  {name:"OpenWorker", by:"Cowork Agent . DeepSeek-V4-Flash", icon:"O", color:"#2563EB", status:"deployed", link:"23_OpenWorker/index.html", github:"https://github.com/andrewyng/openworker", tags:["JSON/SQLite","Chart.js"], desc:"10 个主要城市一般工商业分时电价查询与对比站、4 段柱状图对比 + 年度趋势折线图 + 分时时段定义 + 数据来源全链路追溯。"}
+];
 
-                <!-- QoderWork -->
-                <a href="03_QoderWork/index.html" class="agent-card">
-                    <div class="agent-card-header">
-                        <div class="agent-icon qoder">Q</div>
-                        <div>
-                            <div class="agent-name">QoderWork</div>
-                            <div class="agent-by">Qoder · Deepseek-v4-flash</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag green">✅ 已部署</span>
-                            <span class="agent-tag">CSV/SQLite 双模</span>
-                            <span class="agent-tag">Chart.js</span>
-                        </div>
-                        <div class="agent-status">
-                            5 省工商业分时电价数据（粤/苏/鲁/浙/蒙）、峰谷价差对比、省际柱状图分析、
-                            数据源追溯、缺失说明。CSV 静态展示 / SQLite 后端验证，配置驱动切换。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer">
-                        <span>访问 QoderWork 版本</span>
-                        <span>→</span>
-                    </div>
-                </a>
+var ALL = PROJECTS;
 
-                <!-- Kimi Work -->
-                <div class="agent-card disabled">
-                    <div class="agent-card-header">
-                        <div class="agent-icon kimi">K</div>
-                        <div>
-                            <div class="agent-name">Kimi Work</div>
-                            <div class="agent-by">Moonshot AI · K2.6 / K3（个人版受限）</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag gray">⏸ 未完成实测</span>
-                        </div>
-                        <div class="agent-status">
-                            个人版环境下多次资源排队 / 卡顿，本轮未完成实测，暂不纳入交付质量评分。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer" style="color:var(--text-muted);">暂不评分</div>
-                </div>
+var CODE_AGENTS = [
+  {name:"Claude Code", by:"Anthropic . cc-switch -> DeepSeek", icon:"C", color:"#D97757", status:"untested", link:"", tags:["终端 Agent","SWE-bench 80.9%"], desc:"终端原生推理 Agent，Agent Teams + MCP 生态。通过 cc-switch 路由可接入 DeepSeek 等自建模型，打破模型绑定。需验证。"},
+  {name:"Codex CLI", by:"OpenAI . cc-switch -> DeepSeek", icon:"X", color:"#10A37F", status:"untested", link:"", tags:["终端 Agent","67K+ Stars"], desc:"OpenAI 开源终端编码 Agent，三级自主度，免费开源。通过 cc-switch 路由可接入 DeepSeek。67K+ GitHub Stars。需验证。"},
+  {name:"Cline", by:"社区驱动 . 原生支持 DeepSeek", icon:"C", color:"#E53E3E", status:"untested", link:"", tags:["VS Code 插件","BYOK"], desc:"开源 VS Code Agent 插件，80.8% SWE-bench（底层模型分）。自带 API Key 接入，原生支持 DeepSeek，每一步操作透明可审计。5M+ 安装量。需验证。"},
+  {name:"Cursor", by:"Cursor Inc . cc-switch 可路由", icon:"C", color:"#6B46C1", status:"untested", link:"", tags:["AI 原生 IDE","Composer"], desc:"AI 原生 IDE，VS Code 分支，Composer 多文件编辑。通过 cc-switch 可接入 DeepSeek。最广泛开发者采用的 AI 编码工具。需验证。"},
+  {name:"GitHub Copilot", by:"GitHub/Microsoft . cc-switch 可路由", icon:"G", color:"#24292F", status:"untested", link:"", tags:["VS Code 插件","团队首选"], desc:"性价比最高，VS Code/JetBrains 原生集成，2026 年 6 月改用量计费。通过路由可接入 DeepSeek。需验证。"}
+];
 
-                <!-- 百度搭子 DuMate -->
-                <a href="05_DuMate/index.html" class="agent-card">
-                    <div class="agent-card-header">
-                        <div class="agent-icon dumate">D</div>
-                        <div>
-                            <div class="agent-name">百度搭子 DuMate</div>
-                            <div class="agent-by">百度 · 模型未知 · v1.0.61</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag green">✅ 已部署</span>
-                            <span class="agent-tag">CSV/SQLite 双模</span>
-                            <span class="agent-tag">Chart.js</span>
-                        </div>
-                        <div class="agent-status">
-                            5省（粤/苏/鲁/浙/蒙）工商业分时电价对比、五段式分类柱状图、峰谷价差分析、
-                            数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer">
-                        <span>访问 DuMate 版本</span>
-                        <span>→</span>
-                    </div>
-                </a>
+var PRD_SKILLS = [
+  {name:"PM Skills Marketplace", by:"phuryn / maorkuriel . 22K+ Stars", icon:"P", color:"#00A7CB", status:"untested", link:"https://github.com/phuryn/pm-skills", tags:["产品全生命周期","100+ 技能"], desc:"覆盖 AI 产品经理完整工作流：Discovery（机会解决方案树、假设验证）→ Strategy（战略画布、商业模型、定价策略）→ Execution（8 段式 PRD、OKR、路线图、Sprint 规划、干系人管理）→ Launch → Growth（北极星指标）。共 100+ 技能、42 个工作流、9 个插件。"},
+  {name:"GitHub Awesome Copilot Skills", by:"GitHub 社区 . 社区驱动", icon:"A", color:"#24292F", status:"untested", link:"https://github.com/github/awesome-copilot", tags:["PRD+需求+架构+开发","100+ 资源"], desc:"企业级产品与工程协作 Skill 集合，包含 PRD 生成（完整 8 段式 PRD 模板 + 用户故事 + 验收条件）、需求分析（用户画像、市场细分、TAM/SAM/SOM 估算）、架构设计（ADR 记录、系统设计）、开发辅助（测试规划、代码审查、实现计划生成）。社区贡献 100+ 指令/Agent/Skill。"},
+  {name:"Superpowers", by:"Jesse Vincent . 174K+ Stars", icon:"S", color:"#6B46C1", status:"untested", link:"https://github.com/obra/superpowers", tags:["TDD 强制执行","7 阶段闭环"], desc:"Agent 软件开发流程框架，7 阶段闭环流水线：需求澄清（Socratic 设计精化）→ 计划编制（详细实现计划）→ 批处理执行（子 Agent 并行、Git Worktree）→ 代码审查（两阶段审查）→ 测试驱动（强制 RED-GREEN-REFACTOR 红绿重构循环）→ 验证（完成前确认）→ 技能沉淀。TDD + 多 Agent 并行 + 强制工作流。"}
+];
 
-            </div>
-            </div>
+var DATA_TOPICS = [
+  {icon:"🚗", name:"汽车保有量"},
+  {icon:"🔧", name:"汽车召回"},
+  {icon:"🔌", name:"充电桩分布"},
+  {icon:"⚡", name:"充电量分布"},
+  {icon:"🌱", name:"绿电分布"},
+  {icon:"🌤", name:"天气信息"}
+];
 
-            <!-- ========== 国外商业 ========== -->
-            <div class="cat-panel" id="panel-foreign">
-            <div class="agent-grid">
+var PROTO_SKILLS = [
+  {name:"OpenUI", by:"wandb . 20K+ Stars", icon:"O", color:"#22C55E", status:"untested", link:"https://github.com/wandb/openui", tags:["AI 生成原型","实时修改"], desc:"AI 驱动 Web 界面原型生成工具。自然语言描述 → 直接生成 UI 界面，支持实时修改和迭代，输出 HTML/React 原型。适用阶段：PRD → 页面原型。"},
+  {name:"Penpot", by:"Penpot . 30K+ Stars", icon:"P", color:"#6C5CE7", status:"untested", link:"https://github.com/penpot/penpot", tags:["专业设计","类 Figma"], desc:"开源专业原型设计平台。类 Figma 的界面设计能力，支持交互流程定义、组件管理、团队评审、Design System 维护。适用阶段：原型设计 → 产品评审。"},
+  {name:"Appsmith", by:"Appsmith . 350K+ Stars", icon:"A", color:"#E53E3E", status:"untested", link:"https://github.com/appsmithorg/appsmith", tags:["低代码","可运行 MVP"], desc:"开源低代码应用构建平台。页面搭建、数据绑定、API 接入、Dashboard 和后台系统快速实现。从原型快速过渡到可运行的 MVP 版本。适用阶段：原型 → 可运行 MVP。"}
+];
 
-                <!-- ChatGPT / Codex -->
-                <a href="10_ChatGPT/index.html" class="agent-card">
-                    <div class="agent-card-header">
-                        <div class="agent-icon" style="background:#1DB954;">C</div>
-                        <div>
-                            <div class="agent-name">ChatGPT (Codex)</div>
-                            <div class="agent-by">OpenAI · Deepseek-v4-flash</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag green">✅ 已部署</span>
-                            <span class="agent-tag">CSV/SQLite 双模</span>
-                            <span class="agent-tag">Chart.js</span>
-                        </div>
-                        <div class="agent-status">
-                            5 省（粤/苏/鲁/浙/蒙）一般工商业分时电价对比、24h 价格曲线叠加分析、
-                            峰谷价差柱状图、省际对比表 + 一句话分析、数据源全链路追溯、缺失透明说明。
-                            CSV 静态展示 / SQLite 后端验证双模式，config.json 配置驱动切换。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer">
-                        <span>访问 Codex 版本</span>
-                        <span>→</span>
-                    </div>
-                </a>
+function renderTopics() {
+  var g = document.getElementById("projectGrid");
+  if (!g) return;
+  g.innerHTML = "";
+  for (var i = 0; i < DATA_TOPICS.length; i++) {
+    var t = DATA_TOPICS[i];
+    var card = '<div class="topic-card"><div class="t-icon">' + t.icon + '</div><div class="t-name">' + t.name + '</div><div class="t-status">⏸ 待实现</div></div>';
+    g.insertAdjacentHTML("beforeend", card);
+  }
+}
 
-                <!-- Claude Desktop -->
-                <a href="11_Claude/index.html" class="agent-card">
-                    <div class="agent-card-header">
-                        <div class="agent-icon" style="background:#D97757;">C</div>
-                        <div>
-                            <div class="agent-name">Claude Desktop</div>
-                            <div class="agent-by">Anthropic · Claude Haiku 4.5 (deepseek-v4-flash)</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag green">✅ 已部署</span>
-                            <span class="agent-tag">CSV/SQLite 双模</span>
-                            <span class="agent-tag">Chart.js</span>
-                        </div>
-                        <div class="agent-status">
-                            5省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线叠图分析、省际价格对比表 + 一句话分析结论、
-                            数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer">
-                        <span>访问 Claude 版本</span>
-                        <span>→</span>
-                    </div>
-                </a>
+function renderDemo(type) {
+  var da = document.getElementById("demoArea");
+  if (!da) return;
+  da.style.display = "block";
+  document.getElementById("projectGrid").innerHTML = "";
+  if (type === "pptx") {
+    da.innerHTML =
+      '<img src="assets/doPPTx.gif" alt="PPT 自动生成演示" class="demo-gif">' +
+      '<p class="demo-caption">PPT 自动生成演示</p>' +
+      '<div class="demo-desc"><strong>关于本 Skill</strong><br><br>' +
+      "支持三种模板风格：Teld 风（品牌主色 Teal）、商务风（深蓝白底）、文质风（暖纸温和系）。" +
+      "从 IMA 知识库、公众号链接、本地文件或粘贴内容中筛选指定资料，" +
+      "根据内容与听众角色，通过逐页交互确认生成完整可编辑 PPTX。</div>";
+  }
+}
 
-                <!-- Gemini -->
-                <div class="agent-card disabled">
-                    <div class="agent-card-header">
-                        <div class="agent-icon" style="background:#4285F4;">G</div>
-                        <div>
-                            <div class="agent-name">Gemini</div>
-                            <div class="agent-by">Google · Gemini 2.5 Pro / Gemini 3</div>
-                        </div>
-                    </div>
-                    <div class="agent-card-body">
-                        <div class="agent-tags">
-                            <span class="agent-tag gray">⏸ 未部署</span>
-                        </div>
-                        <div class="agent-status">
-                            Google 多模态编码 Agent，Gemini Code Assist 集成于 20+ IDE，
-                            Google Cloud 原生产品矩阵，支持多语言代码生成与审查、
-                            BigQuery / Cloud Run 等云服务深度集成。在本验证平台上暂无部署。
-                        </div>
-                    </div>
-                    <div class="agent-card-footer" style="color:var(--text-muted);">待部署</div>
-                </div>
+var ARTICLES = [
+  {num:"01", title:"ChatGPT Codex 路由接入 DeepSeek", url:"https://mp.weixin.qq.com/s/Hu7Bs3aORYsQTqm9CKChjg", summary:"Codex 官方额度耗尽后，通过 cc-switch 本地代理将后端模型路由到 DeepSeek，无需等待额度重置。Codex 是 Agent 框架，模型可以替换。", tags:["Code Agent","模型路由"]},
+  {num:"02", title:"Git + GitHub VS Gitee：AI 资产版本管理", url:"https://mp.weixin.qq.com/s/-Ylho035nNp8lKcH3xYHbQ", summary:"Skill/文章/图床分开管理，Git 记录版本、GitHub 做主仓、Gitee 做镜像、jsDelivr 做 CDN——让每份修改可追踪、每版资产可恢复。", tags:["AI 工程","版本管理","Git"]},
+  {num:"03", title:"FDE 岗位解读", url:"https://mp.weixin.qq.com/s/zv4wHYstQxVt1SnqITORjQ", summary:"FDE（前线部署工程师）成为 2026 年 AI 最热岗位。不是在办公室写代码，而是在业务现场发现真实问题、完成系统集成、对端到端结果负责。", tags:["AI 工程","岗位","FDE"]},
+  {num:"04", title:"Agent 产品与运行框架地图", url:"https://mp.weixin.qq.com/s/_pwcdnssK_KO2WXBH0BX_A", summary:"梳理国内/外商业 Agent 产品、开源 Agent 与构建框架。Agent ≈ 大模型 + Harness，研究重点应从模型能力转向任务完成效果。", tags:["AI 工程","Agent 框架","产品地图"]}
+];
 
-            </div>
-            </div>
-            </div>
-        </div>
-    </section>
+function renderArticles() {
+  var g = document.getElementById("projectGrid");
+  if (!g) return;
+  g.innerHTML = '<div class="article-list"></div>';
+  var list = g.firstChild;
+  for (var i = 0; i < ARTICLES.length; i++) {
+    var a = ARTICLES[i];
+    var tags = "";
+    for (var j = 0; j < a.tags.length; j++) tags += '<span class="pc-tag">' + a.tags[j] + '</span>';
+    list.insertAdjacentHTML("beforeend",
+      '<a href="' + a.url + '" target="_blank" rel="noopener" class="article-item"><div class="a-num">' + a.num + '</div><div class="a-title">' + a.title + '</div><div class="a-summary">' + a.summary + '</div><div class="a-tags">' + tags + '</div></a>');
+  }
+}
 
-    <footer style="padding:12px 0;border-top:1px solid var(--border);background:var(--bg-body);">
-        <div class="container" style="text-align:center;">
-            <p style="font-size:0.72rem;color:var(--text-muted);">AI Work Agent 能力验证 · 城市分时电价观察站 · 2026</p>
-            <p style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">国内商业 Agent 已上线 · 国外商业 / 开源 Agent 待补</p>
-        </div>
-    </footer>
-
-    <script>
-    // Tab switching with localStorage memory
-    function switchTab(cat) {
-        // Update tab active state
-        document.querySelectorAll('.cat-tab').forEach(function(t) {
-            t.classList.remove('active');
-        });
-        var activeTab = document.querySelector('.cat-tab[data-cat="' + cat + '"]');
-        if (activeTab) activeTab.classList.add('active');
-        // Update panel visibility
-        document.querySelectorAll('.cat-panel').forEach(function(p) {
-            p.classList.remove('active');
-        });
-        var panel = document.getElementById('panel-' + cat);
-        if (panel) panel.classList.add('active');
-        // Remember which tab was selected
-        localStorage.setItem('portal_tab', cat);
+function renderProjects(list) {
+  var g = document.getElementById("projectGrid");
+  if (!g) return;
+  g.innerHTML = "";
+  for (var i = 0; i < list.length; i++) {
+    var p = list[i];
+    var d = p.status === "deployed" ? "" : " disabled";
+    var tags = p.status === "deployed" ? '<span class="pc-tag green">[已部署]</span>' : p.status === "failed" ? '<span class="pc-tag gray">[未完成]</span>' : p.status === "untested" ? '<span class="pc-tag gray">[未验证]</span>' : '<span class="pc-tag gray">[未部署]</span>';
+    for (var j = 0; j < p.tags.length; j++) tags += '<span class="pc-tag">' + p.tags[j] + '</span>';
+    var foot;
+    if (p.status === "deployed") {
+      foot = '<div class="pc-footer"><span>访问 ' + p.name + ' 版本</span><span class="arrow">-></span></div>';
+    } else if (p.status === "untested") {
+      foot = '<div class="pc-footer" style="color:#B0A694;justify-content:center;"><span>待验证</span></div>';
+    } else {
+      foot = '<div class="pc-footer" style="color:#B0A694;"><span>' + (p.status === "failed" ? "暂不评分" : "待部署") + '</span></div>';
     }
+    var card;
+    if (p.status === "deployed") {
+      var gh2 = '';
+      if (p.github) {
+        var gl = p.github.indexOf("github.com") >= 0 ? "GitHub ↗" : "访问下载 ↗";
+        gh2 = '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #D6CFC0;"><a href="' + p.github + '" target="_blank" rel="noopener" style="color:#00A7CB;text-decoration:none;font-weight:600;font-size:0.72rem;">' + gl + '</a></div>';
+        var hf = p.link ? 'href="' + p.link + '"' : 'href="javascript:void(0)"';
+        card = '<div class="project-card"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div>' + gh2 + '</div></div><div class="pc-body"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div><div class="pc-footer"><a ' + hf + ' style="color:#00A7CB;text-decoration:none;">访问 ' + p.name + ' 版本</a><span class="arrow">-></span></div></div>';
+      } else {
+        var href = p.link ? 'href="' + p.link + '"' : 'href="javascript:void(0)"';
+        card = '<a class="project-card" ' + href + '><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div></div></div><div class="pc-body"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div>' + foot + '</a>';
+      }
+    } else if (p.status === "untested") {
+      var gh = p.link ? '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #D6CFC0;"><a href="' + p.link + '" target="_blank" rel="noopener" style="color:#00A7CB;text-decoration:none;font-weight:600;font-size:0.72rem;">GitHub ↗</a></div>' : '';
+      card = '<div class="project-card' + d + '"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div>' + gh + '</div></div><div class="pc-body" style="opacity:0.55;"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div>' + foot + '</div>';
+    } else {
+      card = '<div class="project-card' + d + '"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div></div></div><div class="pc-body" style="opacity:0.55;"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div>' + foot + '</div>';
+    }
+    g.insertAdjacentHTML("beforeend", card);
+  }
+}
 
-    // Restore last active tab on page load
-    (function initTab() {
-        var saved = localStorage.getItem('portal_tab');
-        if (saved === 'domestic' || saved === 'foreign') {
-            switchTab(saved);
-        }
-        // else: keep HTML default (domestic)
-    })();
+function filterProjects(cat) {
+  localStorage.setItem("sub_tab", cat);
+  var m;
+  if (cat === "domestic") m = ALL.slice(0,5); else if (cat === "foreign") m = ALL.slice(5,8); else m = ALL.slice(8,11);
+  renderProjects(m);
+  var tabs = document.querySelectorAll(".sub-tab");
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+  var idx = cat === "domestic" ? 0 : cat === "foreign" ? 1 : 2;
+  if (tabs[idx]) tabs[idx].classList.add("active");
+  // Update review link
+  var rl = document.getElementById("reviewLink");
+  if (rl) {
+    if (cat === "domestic") {
+      rl.href = "https://mp.weixin.qq.com/s/qwmfo8iUObUebva1Iqd86A";
+      rl.textContent = "";
+      rl.innerHTML = '国内商业 Agent 详细评测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg>';
+    } else if (cat === "foreign") {
+      rl.href = "https://mp.weixin.qq.com/s/Gh6DSFIE2g0OgivmCUZ50w";
+      rl.textContent = "";
+      rl.innerHTML = '国外商业 Agent 详细评测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg>';
+    } else {
+      rl.href = "javascript:void(0)";
+      rl.textContent = "";
+      rl.innerHTML = '开源 Agent 详细评测（评测中）';
+    }
+  }
+}
 
-    // Tab click handlers
-    document.querySelectorAll('.cat-tab:not(.disabled)').forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            switchTab(this.dataset.cat);
-        });
-    });
-    </script>
+function showSection(id) {
+  var els = ["homeSection","agentSection"];
+  for (var i = 0; i < els.length; i++) {
+    var el = document.getElementById(els[i]);
+    if (el) el.style.display = els[i] === id ? "block" : "none";
+  }
+  var cs = document.getElementById("comingSoon");
+  if (cs) cs.style.display = "none";
+}
+
+document.getElementById("navToggle").onclick = function() {
+  var l = document.getElementById("navLinks");
+  if (l.className.indexOf("open") >= 0) l.className = l.className.replace(" open",""); else l.className += " open";
+};
+
+document.querySelector(".nav-brand").onclick = function(e) {
+  e.preventDefault();
+  showSection("homeSection");
+  var links = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < links.length; i++) links[i].classList.remove("active");
+  this.classList.add("active");
+  document.getElementById("navLinks").className = document.getElementById("navLinks").className.replace(" open","");
+  localStorage.setItem("nav_tab","home");
+};
+
+var navLinks = document.querySelectorAll(".nav-links a");
+for (var i = 0; i < navLinks.length; i++) {
+  navLinks[i].onclick = function(e) {
+    e.preventDefault();
+    document.querySelector(".nav-brand").classList.remove("active");
+    var links = document.querySelectorAll(".nav-links a");
+    for (var j = 0; j < links.length; j++) links[j].classList.remove("active");
+    this.classList.add("active");
+    document.getElementById("navLinks").className = document.getElementById("navLinks").className.replace(" open","");
+    var name = this.textContent.trim();
+    localStorage.setItem("nav_tab",name);
+    if (name === "Work Agent") {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
+      document.getElementById("agentSection").querySelector(".branch-header h1").textContent = "Work Agent 能力";
+      document.getElementById("agentSection").querySelector(".branch-header p").textContent = "基于同一份 PRD、不同 AI Work Agent 独立搭建的城市分时电价观察站 MVP 对比。";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "flex";
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "block";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "block";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      var ss = localStorage.getItem("sub_tab");
+      filterProjects(ss === "foreign" ? "foreign" : ss === "opensource" ? "opensource" : "domestic");
+    } else if (name === "Code Agent") {
+      showSection("agentSection");
+      var caH = document.getElementById("agentSection").querySelector(".branch-header h1");
+      caH.innerHTML = 'Code Agent 能力 <span class="status-pill">待验证</span>';
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      renderProjects(CODE_AGENTS);
+    } else if (name === "数据聚合") {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '数据聚合 <span class="status-pill">待实现</span>';
+      document.getElementById("agentSection").querySelector(".branch-header p").textContent = "合法捕获各渠道发布的公开数据信息";
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "block";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      renderTopics();
+    } else if (name === "办公 Skill") {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header h1").textContent = "PPT 自动生成";
+      var sp = document.getElementById("agentSection").querySelector(".branch-header p");
+      sp.style.display = "block";
+      sp.innerHTML = '<a href="https://mp.weixin.qq.com/s/d8E6a7zLa19MbXh2gMJOAQ" target="_blank" rel="noopener" style="color:#00A7CB;text-decoration:underline;text-decoration-color:rgba(0,167,203,0.3);text-underline-offset:3px;">一个能直接生成可编辑 PPTX 的 Skill ↗</a>';
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("demoArea").style.display = "block";
+      renderDemo("pptx");
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+    } else if (name === "PRD Skill") {
+      showSection("agentSection");
+      var psH = document.getElementById("agentSection").querySelector(".branch-header h1");
+      psH.innerHTML = 'PRD Skill 能力 <span class="status-pill">待验证</span>';
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("demoArea").style.display = "none";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      renderProjects(PRD_SKILLS);
+    } else if (name === "原型 Skill") {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '原型 Skill 能力 <span class="status-pill">待验证</span>';
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("demoArea").style.display = "none";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      renderProjects(PROTO_SKILLS);
+    } else if (name === "AI 笔记") {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header").style.display = "none";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("demoArea").style.display = "none";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      renderArticles();
+    } else {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header h1").textContent = name + " 能力";
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+      document.getElementById("demoArea").style.display = "none";
+      document.getElementById("projectGrid").innerHTML = "";
+      var el = document.getElementById("comingSoon");
+      if (!el) {
+        var d = document.createElement("div");
+        d.id = "comingSoon";
+        d.style.cssText = "text-align:center;padding:80px 20px;color:#A69B8C;";
+        d.innerHTML = '<div style="font-size:2rem;margin-bottom:10px;">[建]</div><div style="font-size:1rem;font-weight:600;color:#5A4A3A;">' + name + '</div><div style="font-size:0.85rem;margin-top:6px;">该研究线尚未启动</div>';
+        document.getElementById("agentSection").appendChild(d);
+      } else {
+        el.style.display = "block";
+        el.innerHTML = '<div style="font-size:2rem;margin-bottom:10px;">[建]</div><div style="font-size:1rem;font-weight:600;color:#5A4A3A;">' + name + '</div><div style="font-size:0.85rem;margin-top:6px;">该研究线尚未启动</div>';
+      }
+    }
+  };
+}
+
+var sn = localStorage.getItem("nav_tab");
+if (sn === "Work Agent") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "Work Agent") ls[i].classList.add("active"); }
+  var ss = localStorage.getItem("sub_tab");
+  filterProjects(ss === "foreign" ? "foreign" : ss === "opensource" ? "opensource" : "domestic");
+} else if (sn === "Code Agent") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "Code Agent") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = 'Code Agent 能力 <span class="status-pill">待验证</span>';
+  document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  renderProjects(CODE_AGENTS);
+} else if (sn === "数据聚合") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "数据聚合") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '数据聚合 <span class="status-pill">待实现</span>';
+  document.getElementById("agentSection").querySelector(".branch-header p").textContent = "合法捕获各渠道发布的公开数据信息";
+  document.getElementById("agentSection").querySelector(".branch-header p").style.display = "block";
+  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  renderTopics();
+} else if (sn === "办公 Skill") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "办公 Skill") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header h1").textContent = "PPT 自动生成";
+  var sp = document.getElementById("agentSection").querySelector(".branch-header p");
+  sp.style.display = "block";
+  sp.innerHTML = '<a href="https://mp.weixin.qq.com/s/d8E6a7zLa19MbXh2gMJOAQ" target="_blank" rel="noopener" style="color:#00A7CB;text-decoration:underline;text-decoration-color:rgba(0,167,203,0.3);text-underline-offset:3px;">一个能直接生成可编辑 PPTX 的 Skill ↗</a>';
+  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  document.getElementById("demoArea").style.display = "block";
+  renderDemo("pptx");
+} else if (sn === "PRD Skill") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "PRD Skill") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = 'PRD Skill 能力 <span class="status-pill">待验证</span>';
+  document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  document.getElementById("demoArea").style.display = "none";
+  renderProjects(PRD_SKILLS);
+} else if (sn === "原型 Skill") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "原型 Skill") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '原型 Skill 能力 <span class="status-pill">待验证</span>';
+  document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  document.getElementById("demoArea").style.display = "none";
+  renderProjects(PROTO_SKILLS);
+} else if (sn === "AI 笔记") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "AI 笔记") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header").style.display = "none";
+  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  document.getElementById("demoArea").style.display = "none";
+  renderArticles();
+} else {
+  showSection("homeSection");
+  document.querySelector(".nav-brand").classList.add("active");
+}
+</script>
 </body>
 </html>
-

@@ -1,0 +1,11 @@
+source_id,source_name,source_type,source_url,publish_date,collect_date,reliability,province_id,notes
+src-gd-001,广东省发展改革委关于进一步完善我省峰谷分时电价政策有关问题的通知,government_doc,https://drc.gd.gov.cn,2024-06-01,2025-07-01,high,gd,打开 dɾc.gd.gov.cn → 政务公开 → 政策法规 → 搜索"分时电价"
+src-js-001,江苏省发展改革委关于进一步完善分时电价政策的通知,government_doc,https://fzggw.jiangsu.gov.cn,2024-07-01,2025-07-01,high,js,打开 fzggw.jiangsu.gov.cn → 通知公告 → 搜索"分时电价"
+src-sd-001,山东省发展和改革委员会关于进一步完善分时电价政策的通知,government_doc,https://fgw.shandong.gov.cn,2024-05-15,2025-07-01,high,sd,打开 fgw.shandong.gov.cn → 政策文件 → 搜索"分时电价"
+src-zj-001,浙江省发展改革委关于进一步完善我省分时电价政策的通知,government_doc,https://fzggw.zj.gov.cn,2024-06-15,2025-07-01,high,zj,打开 fzggw.zj.gov.cn → 通知公告 → 搜索"分时电价"
+src-nmg-001,内蒙古自治区发展和改革委员会关于完善蒙西地区分时电价政策的通知,government_doc,https://fgw.nmg.gov.cn,2024-04-20,2025-07-01,high,nmg,打开 fgw.nmg.gov.cn → 政务公开 → 政策法规 → 搜索"分时电价"
+src-gd-002,广东电网有限责任公司代理购电工商业用户电价表,grid_company,https://www.gd.csg.cn,2025-06-30,2025-07-01,high,gd,打开 gd.csg.cn → 营业公开 → 电价信息 → "代理购电价格表"
+src-js-002,国网江苏省电力有限公司代理购电价格表,grid_company,https://www.js.sgcc.com.cn,2025-06-30,2025-07-01,high,js,打开 js.sgcc.com.cn → 业务指南 → 电价信息 → "代理购电价格表"
+src-sd-002,国网山东省电力公司代理购电价格表,grid_company,https://www.sd.sgcc.com.cn,2025-06-30,2025-07-01,high,sd,打开 sd.sgcc.com.cn → 业务中心 → 电价信息 → "代理购电价格表"
+src-zj-002,国网浙江省电力有限公司代理购电价格表,grid_company,https://www.zj.sgcc.com.cn,2025-06-30,2025-07-01,high,zj,打开 zj.sgcc.com.cn → 业务中心 → 电价信息 → "代理购电价格表"
+src-nmg-002,内蒙古电力(集团)有限责任公司代理购电价格表,grid_company,https://www.nmg.sgcc.com.cn,2025-06-30,2025-07-01,high,nmg,打开 nmg.sgcc.com.cn → 业务中心 → 电价信息 → "代理购电价格表"

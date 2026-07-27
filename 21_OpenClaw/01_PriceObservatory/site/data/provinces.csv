@@ -1,0 +1,6 @@
+province_id,province_name,province_abbr,region,data_status,notes
+gd,广东省,粤,南方,verified,已从省级发改委网站获取最新分时电价政策
+js,江苏省,苏,华东,verified,已从省级发改委网站获取最新分时电价政策
+sd,山东省,鲁,华北,verified,已从省级发改委网站获取最新分时电价政策
+zj,浙江省,浙,华东,verified,已从省级发改委网站获取最新分时电价政策
+nmg,内蒙古,蒙,华北,verified,已从省级发改委网站获取最新分时电价政策

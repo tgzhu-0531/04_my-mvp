@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市分时电价观察站 | TOU Price Observatory</title>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <div>
+                    <h1>城市分时电价观察站</h1>
+                    <span class="subtitle">TOU Electricity Price Observatory</span>
+                </div>
+            </div>
+            <nav class="nav">
+                <a href="#dashboard" class="nav-item active" data-tab="dashboard">📊 总览</a>
+                <a href="#query" class="nav-item" data-tab="query">🔍 查询</a>
+                <a href="#compare" class="nav-item" data-tab="compare">📈 对比</a>
+                <a href="#sources" class="nav-item" data-tab="sources">📋 来源</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- ===== Tab: 总览 ===== -->
+        <section id="tab-dashboard" class="tab-content active">
+            <div class="stats-grid" id="stats-grid">
+                <!-- 由JS动态填充 -->
+            </div>
+            <div class="chart-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 各城市高峰电价对比</h3>
+                        <span class="badge">元/kWh</span>
+                    </div>
+                    <div id="chart-compare" class="chart-container"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📈 年度电价趋势</h3>
+                        <span class="badge">示例城市</span>
+                    </div>
+                    <div class="chart-toolbar">
+                        <select id="trend-city-select" class="select-sm"></select>
+                    </div>
+                    <div id="chart-trend" class="chart-container"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>🏙️ 覆盖城市</h3>
+                    <span class="badge" id="city-count-badge">加载中...</span>
+                </div>
+                <div id="city-grid" class="city-grid"></div>
+            </div>
+        </section>
+
+        <!-- ===== Tab: 查询 ===== -->
+        <section id="tab-query" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🔍 电价查询</h3>
+                    <span class="badge">按条件筛选</span>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>城市</label>
+                        <select id="query-city" class="select-input">
+                            <option value="">全部城市</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>时段</label>
+                        <select id="query-period" class="select-input">
+                            <option value="">全部时段</option>
+                            <option value="尖峰">尖峰</option>
+                            <option value="高峰">高峰</option>
+                            <option value="平段">平段</option>
+                            <option value="低谷">低谷</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>电压等级</label>
+                        <select id="query-voltage" class="select-input">
+                            <option value="1-10kV">1-10kV</option>
+                            <option value="35kV及以上">35kV及以上</option>
+                            <option value="不满1kV">不满1kV</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="queryPrices()">查询</button>
+                    <button class="btn btn-secondary" onclick="resetQuery()">重置</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="query-table">
+                        <thead>
+                            <tr>
+                                <th>城市</th>
+                                <th>省份</th>
+                                <th>区域</th>
+                                <th>时段</th>
+                                <th>电价 (元/kWh)</th>
+                                <th>电压等级</th>
+                                <th>生效日期</th>
+                                <th>数据来源</th>
+                            </tr>
+                        </thead>
+                        <tbody id="query-results">
+                            <tr><td colspan="8" class="empty-state">选择条件后点击查询</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 时段定义 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>🕐 分时时段详情</h3>
+                    <span class="badge">选择城市查看</span>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>城市</label>
+                        <select id="period-city" class="select-input">
+                            <option value="">请选择城市</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper" id="period-table-wrapper">
+                    <p class="empty-state">请先选择城市</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Tab: 对比 ===== -->
+        <section id="tab-compare" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📈 多城市电价对比</h3>
+                    <span class="badge">最多选5个城市</span>
+                </div>
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>选择城市（多选）</label>
+                        <div class="checkbox-group" id="compare-cities"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="comparePrices()">开始对比</button>
+                </div>
+                <div id="chart-compare-detail" class="chart-container" style="height:500px"></div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="compare-table">
+                        <thead>
+                            <tr>
+                                <th>城市</th>
+                                <th>尖峰 (元/kWh)</th>
+                                <th>高峰 (元/kWh)</th>
+                                <th>平段 (元/kWh)</th>
+                                <th>低谷 (元/kWh)</th>
+                                <th>峰谷价差</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compare-results">
+                            <tr><td colspan="6" class="empty-state">选择城市后点击对比</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== Tab: 来源 ===== -->
+        <section id="tab-sources" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 数据来源清单</h3>
+                    <span class="badge">可追溯</span>
+                </div>
+                <p class="source-intro">所有电价数据均来源于各省市发改委（物价局）官方公告及电网公司公开信息。点击链接可访问原文。</p>
+                <div class="table-wrapper">
+                    <table class="data-table" id="sources-table">
+                        <thead>
+                            <tr>
+                                <th>来源名称</th>
+                                <th>类型</th>
+                                <th>可靠性评分</th>
+                                <th>链接</th>
+                                <th>被引用次数</th>
+                                <th>采集日期</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sources-results">
+                            <tr><td colspan="6" class="empty-state">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <p>城市分时电价观察站 · MVP</p>
+            <p class="footer-note">数据仅供参考，以各地方政府官方公告为准。</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

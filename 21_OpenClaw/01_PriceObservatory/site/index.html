@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>城市分时电价观察站 MVP</title>
+    <meta name="description" content="中国5个重点省份分时电价数据查询与对比平台 - 广东、江苏、山东、浙江、内蒙古">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- ===== Header ===== -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <a href="../../../index.html" title="返回总览页" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;border:1px solid var(--border-color);color:var(--text-secondary);font-size:0.85rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border-color)'">
+                    ← 返回总览
+                </a>
+                <div class="logo">
+                    <div class="logo-icon">⚡</div>
+                    <span>分时电价观察站</span>
+                </div>
+            </div>
+            <div class="header-badge">
+                <span id="dataModeBadge" class="data-mode-badge">📄 加载中...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== Loading Overlay ===== -->
+    <div id="loadingOverlay" style="display:flex;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.8);z-index:9999;justify-content:center;align-items:center;flex-direction:column;">
+        <div style="width:48px;height:48px;border:3px solid var(--border-color);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;"></div>
+        <div style="color:var(--text-secondary);font-size:0.9rem;">数据加载中...</div>
+    </div>
+
+    <!-- ===== Error Display ===== -->
+    <div id="errorDisplay" style="display:none;max-width:1400px;margin:24px auto 0;padding:0 24px;"></div>
+
+    <!-- ===== Main Container ===== -->
+    <main class="main-container">
+        
+        <!-- Hero -->
+        <section class="hero">
+            <h1>城市分时电价观察站</h1>
+            <p>集中展示中国重点省份分时电价政策与价格数据，支持多维度查询、对比分析和数据源追溯。</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="statProvinces">-</span>
+                    <span class="stat-label">覆盖省份</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="statRecords">-</span>
+                    <span class="stat-label">价格数据</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="statSources">-</span>
+                    <span class="stat-label">数据来源</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Config Bar -->
+        <div class="config-bar">
+            <div class="config-item">📡 数据模式：<strong id="configMode">-</strong></div>
+            <div class="config-item">📦 版本：<strong id="configVersion">-</strong></div>
+            <div class="config-item">📅 数据采集：<strong id="configDate">-</strong></div>
+            <div class="config-item">🔗 <a href="../README.md" target="_blank">使用文档</a> · <a href="../data_source_manifest.md" target="_blank">数据源清单</a> · <a href="../glossary.md" target="_blank">术语表</a> · <a href="../known_issues.md" target="_blank">已知限制</a></div>
+        </div>
+
+        <!-- Page Controls -->
+        <div class="controls-section">
+            <div class="control-group">
+                <label>省份筛选</label>
+                <select id="selectProvince">
+                    <option value="all">全部省份</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>季节筛选</label>
+                <select id="selectSeason">
+                    <option value="all">全部季节</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>时段分类</label>
+                <select id="selectCategory">
+                    <option value="all">全部时段</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Province Cards -->
+        <section style="margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h2 style="font-size:1.2rem;font-weight:700;">📊 省份概览</h2>
+                <span style="font-size:0.8rem;color:var(--text-muted);">点击筛选查看详情</span>
+            </div>
+            <div id="provinceCards" class="grid-3col"></div>
+        </section>
+
+        <!-- Comparison Chart + Data Sources Grid -->
+        <div class="grid-2col">
+            <!-- Comparison Chart -->
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title"><span class="icon">📈</span> 五省分时电价对比</span>
+                    <span class="card-subtitle">各时段平均电价 (元/kWh)</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Data Sources -->
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title"><span class="icon">🔍</span> 数据来源</span>
+                    <span class="card-subtitle">可追溯至原始官方文件</span>
+                </div>
+                <div id="sourceList" class="source-list"></div>
+            </section>
+        </div>
+
+        <!-- Conclusion -->
+        <section class="conclusion-box">
+            <h3>💡 数据洞察</h3>
+            <p id="conclusionText">加载中...</p>
+        </section>
+
+        <!-- Detailed Data -->
+        <section class="card">
+            <div class="card-header">
+                <span class="card-title"><span class="icon">📋</span> 详细价格数据</span>
+                <span class="card-subtitle">共 <span id="tableCount">-</span></span>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="price">价格表</button>
+                <button class="tab-btn" data-tab="sources">数据源</button>
+                <button class="tab-btn" data-tab="missing">缺失说明</button>
+            </div>
+
+            <!-- Tab: Price Table -->
+            <div id="priceTab" class="tab-content active">
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>省份</th>
+                                <th>季节</th>
+                                <th>时段分类</th>
+                                <th>时间范围</th>
+                                <th>电价 (元/kWh)</th>
+                                <th>生效日期</th>
+                                <th>数据源</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Data Sources -->
+            <div id="sourcesTab" class="tab-content">
+                <div class="data-table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>省份</th>
+                                <th>数据源名称</th>
+                                <th>类型</th>
+                                <th>可信度</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sourceTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab: Missing Data -->
+            <div id="missingTab" class="tab-content">
+                <div id="missingDataNotes"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== Footer ===== -->
+    <footer class="site-footer">
+        <div class="footer-links">
+            <a href="../README.md" target="_blank">📖 README</a>
+            <a href="../glossary.md" target="_blank">📚 术语表</a>
+            <a href="../data_source_manifest.md" target="_blank">📄 数据源清单</a>
+            <a href="../known_issues.md" target="_blank">⚠️ 已知限制</a>
+        </div>
+        <div class="footer-copyright">
+            城市分时电价观察站 MVP v1.0.0 · 数据采集于 2025-07-01 · 数据来源：各省发改委 / 电网公司官方公告
+        </div>
+    </footer>
+
+    <!-- ===== Scripts ===== -->
+    <script src="js/csv-adapter.js"></script>
+    <script src="js/sqlite-adapter.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+#!/usr/bin/env python3
+"""生成前端的 app.js 和 index.html 文件 - 嵌入实际 CSV 数据作为 fallback"""
+import json
+import csv
+from pathlib import Path
+
+BASE = Path(r"F:\02_ChatGPT Work\06_XWork\22_Hermes")
+CSV_DIR = BASE / "data" / "csv"
+
+def load_csv_to_json(filename):
+    filepath = CSV_DIR / filename
+    rows = []
+    with open(filepath, "r", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
+    return rows
+
+# 加载所有 CSV 数据
+tou_rates = load_csv_to_json("tou_rates_flat.csv")
+data_sources = load_csv_to_json("data_sources_flat.csv")
+missing_records = load_csv_to_json("missing_records_flat.csv")
+province_summary = load_csv_to_json("province_summary.csv")
+
+# 读取 app.js 模板
+app_js_path = BASE / "src" / "js" / "app.js"
+app_js = app_js_path.read_text("utf-8")
+
+# 替换占位符
+app_js = app_js.replace(
+    "${embeddedDataPlaceholder}",
+    json.dumps(tou_rates, ensure_ascii=False, default=str)
+)
+app_js = app_js.replace(
+    "${embeddedSourcesPlaceholder}",
+    json.dumps(data_sources, ensure_ascii=False, default=str)
+)
+app_js = app_js.replace(
+    "${embeddedMissingPlaceholder}",
+    json.dumps(missing_records, ensure_ascii=False, default=str)
+)
+app_js = app_js.replace(
+    "${embeddedSummaryPlaceholder}",
+    json.dumps(province_summary, ensure_ascii=False, default=str)
+)
+
+app_js_path.write_text(app_js, "utf-8")
+print(f"✓ 已生成 app.js ({len(app_js)} bytes)")
+
+# 创建 index.html
+html = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>城市分时电价观察站</title>
+<link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+<div class="navbar-inner">
+  <a class="back-link" href="../../index.html" title="返回总览页">&larr; 总览</a>
+  <a class="navbar-brand" href="#">
+    <span class="brand-icon">&#9889;</span>
+    城市分时电价观察站
+  </a>
+  <div class="navbar-links">
+    <a class="nav-link active" data-tab="overview" href="javascript:void(0)" onclick="switchTab('overview')">首页概览</a>
+    <a class="nav-link" data-tab="details" href="javascript:void(0)" onclick="switchTab('details')">电价对比</a>
+    <a class="nav-link" data-tab="sources" href="javascript:void(0)" onclick="switchTab('sources')">数据源中心</a>
+    <a class="nav-link" data-tab="missing" href="javascript:void(0)" onclick="switchTab('missing')">缺失数据</a>
+    <a class="nav-link" data-tab="about" href="javascript:void(0)" onclick="switchTab('about')">方法说明</a>
+  </div>
+  <div class="navbar-actions">
+    <span class="data-source-badge" id="dataSourceBadge">CSV</span>
+  </div>
+</div>
+</nav>
+
+<!-- 错误提示 -->
+<div id="errorContainer" style="display:none;"></div>
+
+<!-- 加载提示 -->
+<div id="loadingIndicator" class="loading" style="display:none;">
+  <div class="spinner"></div>
+  <span>数据加载中...</span>
+</div>
+
+<!-- Tab: 首页概览 -->
+<div class="tab-content active" id="tab-overview">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content app-container">
+      <h1 id="pageTitle">城市分时电价观察站</h1>
+      <p>聚焦中国重点省份分时电价政策，提供电价查询、对比分析和数据来源追溯服务。当前覆盖广东、江苏、山东、浙江、内蒙古 5 个样本省份。</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="statProvinces">0</span>
+          <span class="hero-stat-label">覆盖省份</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="statPolicies">0</span>
+          <span class="hero-stat-label">电价政策</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="statSources">0</span>
+          <span class="hero-stat-label">数据来源</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-value" id="statPeriods">0</span>
+          <span class="hero-stat-label">时段数据</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="app-container">
+    <!-- 省份卡片 -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">样本省份概览</h2>
+        <p class="section-subtitle">点击省份卡片可筛选对比范围，查看详细电价信息</p>
+      </div>
+      <div class="province-grid" id="provinceCards"></div>
+    </section>
+
+    <!-- 分析结论 -->
+    <section class="section">
+      <div class="analysis-box" id="analysisBox">
+        <div class="analysis-title">&#128269; 数据分析结论</div>
+        <div class="analysis-content" id="analysisContent">加载中...</div>
+      </div>
+    </section>
+
+    <!-- 电价对比表 -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">分时电价对比</h2>
+        <p class="section-subtitle">各时段分类的代表性价格对比（单位：元/kWh）</p>
+      </div>
+      <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+          <thead id="comparisonHead">
+            <tr><th>时段分类</th><th>广东省</th><th>江苏省</th><th>山东省</th><th>浙江省</th><th>内蒙古</th></tr>
+          </thead>
+          <tbody id="comparisonBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 电价曲线 -->
+    <section class="section">
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title">24小时分时电价曲线</div>
+          <div class="chart-controls">
+            <button class="chart-btn active" data-season="all" onclick="switchSeason('all')">全部省份</button>
+          </div>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Tab: 电价对比 (详细) -->
+<div class="tab-content" id="tab-details">
+  <div class="app-container" style="padding-top:32px;">
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">电价详情查询</h2>
+        <p class="section-subtitle">完整的时段、价格、政策信息一览表</p>
+      </div>
+      <div class="chart-container">
+        <div class="chart-header">
+          <div class="chart-title">所有省份分时电价曲线</div>
+        </div>
+        <div class="chart-canvas-wrapper">
+          <canvas id="priceChartDetails"></canvas>
+        </div>
+      </div>
+      <div class="comparison-table-wrapper" style="overflow-x:auto;">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>省份</th>
+              <th>城市</th>
+              <th>用户类型</th>
+              <th>季节</th>
+              <th>时段名称</th>
+              <th>分类</th>
+              <th>开始</th>
+              <th>结束</th>
+              <th>电价(元/kWh)</th>
+            </tr>
+          </thead>
+          <tbody id="detailTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Tab: 数据源中心 -->
+<div class="tab-content" id="tab-sources">
+  <div class="app-container" style="padding-top:32px;">
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">数据源中心</h2>
+        <p class="section-subtitle">所有数据的公开来源、发布机构、可靠性和采集时间</p>
+      </div>
+      <div id="dataSourcesList"></div>
+    </section>
+  </div>
+</div>
+
+<!-- Tab: 缺失数据 -->
+<div class="tab-content" id="tab-missing">
+  <div class="app-container" style="padding-top:32px;">
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">缺失与待验证数据</h2>
+        <p class="section-subtitle">以下数据暂时无法从公开来源获取或需要进一步核实</p>
+      </div>
+      <div id="missingDataList"></div>
+    </section>
+  </div>
+</div>
+
+<!-- Tab: 方法说明 -->
+<div class="tab-content" id="tab-about">
+  <div class="app-container" style="padding-top:32px;">
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">方法说明</h2>
+      </div>
+      <div class="chart-container" style="line-height:1.8;">
+        <h3 style="margin-bottom:16px;">&#128196; 项目背景</h3>
+        <p style="color:var(--gray-600);margin-bottom:16px;">
+          城市分时电价观察站是为验证 AI Work Agent 在真实任务中从需求理解到数据采集、建模、网站开发全链路能力而搭建的 MVP。项目聚焦中国用电量最大的 5 个省份，展示其分时电价政策、时段结构和价格数据。
+        </p>
+        
+        <h3 style="margin-bottom:16px;">&#128200; 数据口径</h3>
+        <ul style="padding-left:20px;margin-bottom:16px;color:var(--gray-600);">
+          <li><strong>数据范围：</strong>广东、江苏、山东、浙江、内蒙古 5 个省份</li>
+          <li><strong>用户类型：</strong>工商业用户（1-10kV），不含居民和农业</li>
+          <li><strong>电价构成：</strong>含电度电价和输配电价，为代理购电用户到户电价</li>
+          <li><strong>单位：</strong>元/kWh（原始来源使用元/千瓦时，本站统一换算）</li>
+          <li><strong>时段分类：</strong>尖峰、高峰、平段、低谷、深谷（标准分类）</li>
+        </ul>
+        
+        <h3 style="margin-bottom:16px;">&#128214; 数据来源</h3>
+        <p style="color:var(--gray-600);margin-bottom:16px;">
+          数据来源于各省（自治区）发展和改革委员会官网公开政策文件，以及国家电网、南方电网、内蒙古电力集团等电网公司发布的代理购电价格公告。具体来源请查看"数据源中心"页面。
+        </p>
+        
+        <h3 style="margin-bottom:16px;">&#9888; 数据局限性</h3>
+        <ul style="padding-left:20px;margin-bottom:16px;color:var(--gray-600);">
+          <li>数据采集时间为 2025 年 7 月，电价政策可能已更新，请以官方最新文件为准</li>
+          <li>内蒙古仅包含蒙西电网数据，蒙东电网数据暂缺</li>
+          <li>不同电压等级的电价不同，本站展示的是 1-10kV 等级数据</li>
+          <li>部分省份夏季和非夏季时段划分不同，已分别标注</li>
+          <li>实际到户电价可能包含政府基金及附加，具体金额以电网公司账单为准</li>
+        </ul>
+        
+        <h3 style="margin-bottom:16px;">&#128187; 技术架构</h3>
+        <p style="color:var(--gray-600);margin-bottom:16px;">
+          本站采用前端静态页面架构，支持两种数据源模式：通过 config.json 中的 dataSource 字段切换。
+        </p>
+        <ul style="padding-left:20px;margin-bottom:16px;color:var(--gray-600);">
+          <li><strong>CSV 模式（默认）：</strong>前端直接读取 data/csv/ 目录下的 CSV 文件，无需后端服务，适用于静态托管环境（IIS、GitHub Pages）</li>
+          <li><strong>SQLite 模式：</strong>需运行本地数据接口服务，通过 API 读取 SQLite 数据库，适用于本地完整验证</li>
+        </ul>
+        
+        <h3 style="margin-bottom:16px;">&#128640; 后续建议</h3>
+        <ul style="padding-left:20px;color:var(--gray-600);">
+          <li>增加更多省份和城市的分时电价数据</li>
+          <li>接入居民、农业等更多用户类型的电价数据</li>
+          <li>增加历史价格趋势对比和时间序列分析</li>
+          <li>增加数据更新提醒和订阅功能</li>
+          <li>接入实时电价数据接口</li>
+          <li>补充各省深谷时段的具体价格数据</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+<div class="footer-inner">
+  <div class="footer-links">
+    <a href="../../index.html">返回总览页</a>
+    <a href="https://github.com/" target="_blank">GitHub</a>
+  </div>
+  <div class="footer-text">
+    城市分时电价观察站 MVP v1.0 | 数据仅供研究参考，请以官方发布文件为准 | 
+    最后更新: 2025-07-27
+  </div>
+  <div class="footer-text" style="font-size:12px;">
+    数据来源：各省（自治区）发展和改革委员会、国家电网、南方电网、内蒙古电力集团
+  </div>
+</div>
+</footer>
+
+<script src="src/js/app.js"></script>
+<script>
+// 详情页表格渲染 - 在 app.js 加载完成后扩展
+document.addEventListener('DOMContentLoaded', function() {
+  // 重写 switchTab 以支持详情页图表
+  const originalSwitchTab = window.switchTab;
+  window.switchTab = function(tabName) {
+    APP.currentTab = tabName;
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.toggle('active', link.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.toggle('active', content.id === `tab-$${tabName}`);
+    });
+    if (tabName === 'details') {
+      renderDetailTable();
+      setTimeout(() => renderDetailChart(), 100);
+    }
+    if (tabName === 'overview') {
+      setTimeout(() => renderChart(), 100);
+    }
+  };
+
+  function renderDetailTable() {
+    const tbody = document.getElementById('detailTableBody');
+    if (!APP.data || !APP.data.tou_rates) return;
+    let html = '';
+    APP.data.tou_rates.forEach(r => {
+      const catClass = {'尖':'tag-jian','峰':'tag-feng','平':'tag-ping','谷':'tag-gu','深谷':'tag-shengu'}[r.standard_category] || '';
+      html += `<tr>
+        <td>$${escHtml(r.province)}</td>
+        <td>$${escHtml(r.city)}</td>
+        <td>$${escHtml(r.user_type)}</td>
+        <td>$${escHtml(r.season_type || '-')}</td>
+        <td>$${escHtml(r.period_name)}</td>
+        <td><span class="standard-tag $${catClass}">$${escHtml(r.standard_category)}</span></td>
+        <td>$${escHtml(r.start_time)}</td>
+        <td>$${escHtml(r.end_time)}</td>
+        <td class="price-cell">$${r.price}</td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  function renderDetailChart() {
+    const canvas = document.getElementById('priceChartDetails');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const container = canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const width = rect.width || 800;
+    const height = 400;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.scale(dpr, dpr);
+    
+    // 复用与主图表相同的绘制逻辑
+    // 通过临时替换 canvas 引用来复用 renderChart 的逻辑
+    const origCanvas = document.getElementById('priceChart');
+    // 设置临时 canvas
+    const tempId = '__temp_chart_canvas';
+    document.getElementById('priceChart').id = tempId;
+    document.getElementById('priceChartDetails').id = 'priceChart';
+    window.renderChart();
+    document.getElementById('priceChart').id = 'priceChartDetails';
+    document.getElementById(tempId).id = 'priceChart';
+  }
+});
+</script>
+</body>
+</html>
+"""
+
+html_path = BASE / "index.html"
+html_path.write_text(html, "utf-8")
+print(f"✓ 已生成 index.html ({len(html)} bytes)")
+
+print("\n所有文件生成完毕！")

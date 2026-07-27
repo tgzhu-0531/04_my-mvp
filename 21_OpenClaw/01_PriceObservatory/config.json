@@ -1,0 +1,37 @@
+{
+  "project": "城市分时电价观察站 MVP",
+  "version": "1.0.0",
+  "description": "中国5个重点省份分时电价数据查询与对比平台",
+  "dataSource": "csv",
+  "availableDataSources": ["csv", "sqlite"],
+  "csvConfig": {
+    "basePath": "site/data/",
+    "files": {
+      "provinces": "provinces.csv",
+      "tariffTypes": "tariff_types.csv",
+      "prices": "prices.csv",
+      "dataSources": "data_sources.csv"
+    },
+    "encoding": "UTF-8"
+  },
+  "sqliteConfig": {
+    "dbPath": "database/electricity_prices.db",
+    "apiEndpoint": "/api/query",
+    "apiPort": 8080
+  },
+  "provinces": ["gd", "js", "sd", "zj", "nmg"],
+  "provinceNames": {
+    "gd": "广东省",
+    "js": "江苏省",
+    "sd": "山东省",
+    "zj": "浙江省",
+    "nmg": "内蒙古"
+  },
+  "standardCategories": ["尖峰", "高峰", "平段", "低谷", "深谷"],
+  "seasons": {
+    "gd": { "summer": "7-9月", "normal": "10-6月" },
+    "sd": { "summer": "6-8月", "winter": "12-2月", "spring_autumn": "3-5月、9-11月" }
+  },
+  "buildDate": "2025-07-27",
+  "dataCollectedDate": "2025-07-01"
+}

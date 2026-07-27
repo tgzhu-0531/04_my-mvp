@@ -1,0 +1,31 @@
+{
+  "appName": "城市分时电价观察站",
+  "version": "1.0.0",
+  "description": "中国重点省份分时电价数据查询平台",
+  "dataSource": "csv",
+  "dataSourceOptions": {
+    "csv": {
+      "basePath": "data/csv/",
+      "files": {
+        "tou_rates": "tou_rates_flat.csv",
+        "data_sources": "data_sources_flat.csv",
+        "missing_records": "missing_records_flat.csv",
+        "province_summary": "province_summary.csv"
+      },
+      "encoding": "utf-8"
+    },
+    "sqlite": {
+      "apiEndpoint": "http://localhost:8080/api",
+      "encoding": "utf-8"
+    }
+  },
+  "supportedProvinces": ["广东省", "江苏省", "山东省", "浙江省", "内蒙古"],
+  "lastUpdated": "2025-07-27",
+  "dataStatus": {
+    "totalProvinces": 5,
+    "totalPolicies": 8,
+    "totalSources": 10,
+    "totalPeriods": 65,
+    "missingRecords": 5
+  }
+}
