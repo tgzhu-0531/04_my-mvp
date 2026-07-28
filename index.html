@@ -252,9 +252,11 @@ body {
   border-radius: 14px;
   overflow: hidden;
   transition: all 0.2s;
-  display: block;
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
   color: inherit;
+  position: relative;
 }
 .project-card:hover {
   box-shadow: 0 4px 16px rgba(44,36,22,0.07);
@@ -284,8 +286,9 @@ body {
 .pc-by {
   font-size: 0.7rem; color: #A69B8C; margin-top: 0;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  white-space: nowrap;
 }
-.pc-body { padding: 12px 18px 14px; }
+.pc-body { padding: 12px 18px 4px; }
 .pc-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
 .pc-tag {
   font-size: 0.68rem; padding: 2px 10px; border-radius: 10px;
@@ -294,9 +297,21 @@ body {
 }
 .pc-tag.green { background: #EAF4E8; color: #3A7A44; }
 .pc-tag.gray { background: #F5F2EC; color: #999080; }
+.pc-tag.recommend { background: #FFF3D6; color: #B8860B; }
+.pc-badge {
+  font-size: 0.7rem; font-weight: 700;
+  background: #FFF3D6; color: #B8860B;
+  padding: 3px 10px; border-radius: 10px; white-space: nowrap;
+  margin-left: auto; align-self: flex-start; margin-top: 2px;
+}
+.pc-footer .retro-link { font-size:0.78rem; color:#999080; text-decoration:none; display:inline-flex; align-items:center; gap:3px; }
+.pc-footer .retro-link:hover { color:#00A7CB; }
 .pc-desc {
   font-size: 0.82rem; color: #6B5F4E; line-height: 1.7;
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  padding: 0 18px 14px;
+  display: block;
+  flex: 1;
 }
 
 /* ===== Topic grid (数据聚合) ===== */
@@ -400,9 +415,7 @@ body {
   font-size: 0.82rem;
   font-weight: 600;
   color: #00A7CB;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: block;
 }
 .project-card:hover .pc-footer { color: #2C2416; }
 .pc-footer .arrow { font-size: 1rem; }
@@ -489,33 +502,33 @@ body {
 
 <script>
 var PROJECTS = [
-  {name:"WorkBuddy", by:"CodeBuddy . DeepSeek-V4-Flash", icon:"W", color:"#00A7CB", status:"deployed", link:"01_workbuddy/workbuddy.html", tags:["CSV/SQLite","静态 SPA","Chart.js"], desc:"纯静态 SPA 架构（Hash 路由）、CSV/SQLite 双数据源、5 省对比表 + 24h 叠图分析、可折叠分区、IIS/GitHub Pages 兼容。"},
-  {name:"TRAE Work", by:"TRAE AI . DeepSeek-V4-Flash", icon:"T", color:"#6366F1", status:"deployed", link:"02_TraeWork/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省工商业分时电价对比、24h 叠图分析、价格对比表、数据源追溯、缺失数据说明。CSV 静态展示 / SQLite 后端验证双模式，配置驱动切换。"},
-  {name:"QoderWork", by:"Qoder . DeepSeek-V4-Flash", icon:"Q", color:"#10B981", status:"deployed", link:"03_QoderWork/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省工商业分时电价数据（粤/苏/鲁/浙/蒙）、峰谷价差对比、省际柱状图分析、数据源追溯、缺失说明。CSV 静态展示 / SQLite 后端验证，配置驱动切换。"},
-  {name:"Kimi Work", by:"Moonshot AI . K2.6/K3", icon:"K", color:"#F59E0B", status:"failed", link:"", tags:[], desc:"个人版环境下多次资源排队 / 卡顿，本轮未完成实测，暂不纳入交付质量评分。"},
-  {name:"DuMate", by:"百度 . 模型未知 . v1.0.61", icon:"D", color:"#EF4444", status:"deployed", link:"05_DuMate/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、五段式分类柱状图、峰谷价差分析、数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。"},
-  {name:"ChatGPT Work", by:"OpenAI . DeepSeek-V4-Flash", icon:"C", color:"#10A37F", status:"deployed", link:"10_ChatGPT/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）一般工商业分时电价对比、24h 价格曲线叠加分析、峰谷价差柱状图、省际对比表 + 一句话分析、数据源全链路追溯、缺失透明说明。"},
-  {name:"Claude Desktop", by:"Anthropic . DeepSeek-V4-Flash", icon:"C", color:"#D97757", status:"deployed", link:"11_Claude/index.html", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线叠图分析、省际价格对比表 + 一句话分析结论、数据源全链路追溯、缺失数据透明标注。"},
-  {name:"Gemini", by:"Google . Gemini 2.5 Pro/3", icon:"G", color:"#4285F4", status:"failed", link:"", tags:[], desc:"Google 多模态编码 Agent，Code Assist 集成 20+ IDE，Google Cloud 原生产品矩阵。未部署。"},
-  {name:"OpenClaw", by:"社区驱动 . DeepSeek-V4-Flash", icon:"C", color:"#E53E3E", status:"deployed", link:"21_OpenClaw/01_PriceObservatory/site/index.html", github:"https://github.com/agentkernel/openclaw-desktop/releases/latest", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）分时电价查询对比站、柱状图对比 + 数据源追溯 + 缺失说明。CSV 静态 / SQLite 双模式，config.json 切换。"},
-  {name:"Hermes Agent", by:"Nous Research . DeepSeek-V4-Flash", icon:"H", color:"#6B46C1", status:"deployed", link:"22_Hermes/index.html", github:"https://github.com/NousResearch/hermes-agent", tags:["CSV/SQLite","Canvas API"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线图+对比表+数据源追溯+缺失标注、config.json 配置驱动 CSV/SQLite 双模式切换。"},
-  {name:"OpenWorker", by:"Cowork Agent . DeepSeek-V4-Flash", icon:"O", color:"#2563EB", status:"deployed", link:"23_OpenWorker/index.html", github:"https://github.com/andrewyng/openworker", tags:["JSON/SQLite","Chart.js"], desc:"10 个主要城市一般工商业分时电价查询与对比站、4 段柱状图对比 + 年度趋势折线图 + 分时时段定义 + 数据来源全链路追溯。"}
+  {name:"WorkBuddy", by:"CodeBuddy | DeepSeek-V4-Flash", icon:"W", color:"#00A7CB", status:"deployed", link:"01_workbuddy/workbuddy.html", retro:"01_workbuddy/复盘.md", recommended:true, tags:["CSV/SQLite","静态 SPA","Chart.js"], desc:"纯静态 SPA 架构（Hash 路由）、CSV/SQLite 双数据源、5 省对比表 + 24h 叠图分析、可折叠分区、IIS/GitHub Pages 兼容。"},
+  {name:"TRAE Work", by:"TRAE AI | DeepSeek-V4-Flash", icon:"T", color:"#6366F1", status:"deployed", link:"02_TraeWork/index.html", retro:"02_TraeWork/复盘.md", tags:["CSV/SQLite","Chart.js"], desc:"5 省工商业分时电价对比、24h 叠图分析、价格对比表、数据源追溯、缺失数据说明。CSV 静态展示 / SQLite 后端验证双模式，配置驱动切换。"},
+  {name:"QoderWork", by:"Qoder | DeepSeek-V4-Flash", icon:"Q", color:"#10B981", status:"deployed", link:"03_QoderWork/index.html", retro:"03_QoderWork/复盘.md", tags:["CSV/SQLite","Chart.js"], desc:"5 省工商业分时电价数据（粤/苏/鲁/浙/蒙）、峰谷价差对比、省际柱状图分析、数据源追溯、缺失说明。CSV 静态展示 / SQLite 后端验证，配置驱动切换。"},
+  {name:"Kimi Work", by:"Moonshot AI | K2.6/K3", icon:"K", color:"#F59E0B", status:"failed", link:"", tags:[], desc:"个人版环境下多次资源排队 / 卡顿，本轮未完成实测，暂不纳入交付质量评分。"},
+  {name:"DuMate", by:"百度 | 模型未知 | v1.0.61", icon:"D", color:"#EF4444", status:"deployed", link:"05_DuMate/index.html", retro:"05_DuMate/复盘.md", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、五段式分类柱状图、峰谷价差分析、数据源全链路追溯、缺失数据透明标注。CSV 静态展示 / SQLite 后端验证，config.json 配置驱动切换。"},
+  {name:"ChatGPT Work", by:"OpenAI | DeepSeek-V4-Flash", icon:"C", color:"#10A37F", status:"deployed", link:"10_ChatGPT/index.html", retro:"10_ChatGPT/复盘.md", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）一般工商业分时电价对比、24h 价格曲线叠加分析、峰谷价差柱状图、省际对比表 + 一句话分析、数据源全链路追溯、缺失透明说明。"},
+  {name:"Claude Desktop", by:"Anthropic | DeepSeek-V4-Flash", icon:"C", color:"#D97757", status:"deployed", link:"11_Claude/index.html", retro:"11_Claude/复盘.md", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线叠图分析、省际价格对比表 + 一句话分析结论、数据源全链路追溯、缺失数据透明标注。"},
+  {name:"Gemini", by:"Google | Gemini 2.5 Pro/3", icon:"G", color:"#4285F4", status:"failed", link:"", tags:[], desc:"Google 多模态编码 Agent，Code Assist 集成 20+ IDE，Google Cloud 原生产品矩阵。未部署。"},
+  {name:"OpenClaw", by:"社区驱动 | DeepSeek-V4-Flash", icon:"C", color:"#E53E3E", status:"deployed", link:"21_OpenClaw/01_PriceObservatory/site/index.html", github:"https://github.com/agentkernel/openclaw-desktop/releases/latest", retro:"21_OpenClaw/复盘.md", tags:["CSV/SQLite","Chart.js"], desc:"5 省（粤/苏/鲁/浙/蒙）分时电价查询对比站、柱状图对比 + 数据源追溯 + 缺失说明。CSV 静态 / SQLite 双模式，config.json 切换。"},
+  {name:"Hermes Agent", by:"Nous Research | DeepSeek-V4-Flash", icon:"H", color:"#6B46C1", status:"deployed", link:"22_Hermes/index.html", github:"https://github.com/NousResearch/hermes-agent", retro:"22_Hermes/复盘.md", tags:["CSV/SQLite","Canvas API"], desc:"5 省（粤/苏/鲁/浙/蒙）工商业分时电价对比、24h 曲线图+对比表+数据源追溯+缺失标注、config.json 配置驱动 CSV/SQLite 双模式切换。"},
+  {name:"OpenWorker", by:"Cowork Agent | DeepSeek-V4-Flash", icon:"O", color:"#2563EB", status:"deployed", link:"23_OpenWorker/index.html", github:"https://github.com/andrewyng/openworker", retro:"23_OpenWorker/复盘.md", recommended:true, tags:["JSON/SQLite","Chart.js"], desc:"10 个主要城市一般工商业分时电价查询与对比站、4 段柱状图对比 + 年度趋势折线图 + 分时时段定义 + 数据来源全链路追溯。"}
 ];
 
 var ALL = PROJECTS;
 
 var CODE_AGENTS = [
-  {name:"Claude Code", by:"Anthropic . cc-switch -> DeepSeek", icon:"C", color:"#D97757", status:"untested", link:"", tags:["终端 Agent","SWE-bench 80.9%"], desc:"终端原生推理 Agent，Agent Teams + MCP 生态。通过 cc-switch 路由可接入 DeepSeek 等自建模型，打破模型绑定。需验证。"},
-  {name:"Codex CLI", by:"OpenAI . cc-switch -> DeepSeek", icon:"X", color:"#10A37F", status:"untested", link:"", tags:["终端 Agent","67K+ Stars"], desc:"OpenAI 开源终端编码 Agent，三级自主度，免费开源。通过 cc-switch 路由可接入 DeepSeek。67K+ GitHub Stars。需验证。"},
-  {name:"Cline", by:"社区驱动 . 原生支持 DeepSeek", icon:"C", color:"#E53E3E", status:"untested", link:"", tags:["VS Code 插件","BYOK"], desc:"开源 VS Code Agent 插件，80.8% SWE-bench（底层模型分）。自带 API Key 接入，原生支持 DeepSeek，每一步操作透明可审计。5M+ 安装量。需验证。"},
-  {name:"Cursor", by:"Cursor Inc . cc-switch 可路由", icon:"C", color:"#6B46C1", status:"untested", link:"", tags:["AI 原生 IDE","Composer"], desc:"AI 原生 IDE，VS Code 分支，Composer 多文件编辑。通过 cc-switch 可接入 DeepSeek。最广泛开发者采用的 AI 编码工具。需验证。"},
-  {name:"GitHub Copilot", by:"GitHub/Microsoft . cc-switch 可路由", icon:"G", color:"#24292F", status:"untested", link:"", tags:["VS Code 插件","团队首选"], desc:"性价比最高，VS Code/JetBrains 原生集成，2026 年 6 月改用量计费。通过路由可接入 DeepSeek。需验证。"}
+  {name:"Claude Code", by:"Anthropic | cc-switch -> DeepSeek", icon:"C", color:"#D97757", status:"untested", link:"", tags:["终端 Agent","SWE-bench 80.9%"], desc:"终端原生推理 Agent，Agent Teams + MCP 生态。通过 cc-switch 路由可接入 DeepSeek 等自建模型，打破模型绑定。需验证。"},
+  {name:"Codex CLI", by:"OpenAI | cc-switch -> DeepSeek", icon:"X", color:"#10A37F", status:"untested", link:"", tags:["终端 Agent","67K+ Stars"], desc:"OpenAI 开源终端编码 Agent，三级自主度，免费开源。通过 cc-switch 路由可接入 DeepSeek。67K+ GitHub Stars。需验证。"},
+  {name:"Cline", by:"社区驱动 | 原生支持 DeepSeek", icon:"C", color:"#E53E3E", status:"untested", link:"", tags:["VS Code 插件","BYOK"], desc:"开源 VS Code Agent 插件，80.8% SWE-bench（底层模型分）。自带 API Key 接入，原生支持 DeepSeek，每一步操作透明可审计。5M+ 安装量。需验证。"},
+  {name:"Cursor", by:"Cursor Inc | cc-switch 可路由", icon:"C", color:"#6B46C1", status:"untested", link:"", tags:["AI 原生 IDE","Composer"], desc:"AI 原生 IDE，VS Code 分支，Composer 多文件编辑。通过 cc-switch 可接入 DeepSeek。最广泛开发者采用的 AI 编码工具。需验证。"},
+  {name:"GitHub Copilot", by:"GitHub/Microsoft | cc-switch 可路由", icon:"G", color:"#24292F", status:"untested", link:"", tags:["VS Code 插件","团队首选"], desc:"性价比最高，VS Code/JetBrains 原生集成，2026 年 6 月改用量计费。通过路由可接入 DeepSeek。需验证。"}
 ];
 
 var PRD_SKILLS = [
-  {name:"PM Skills Marketplace", by:"phuryn / maorkuriel . 22K+ Stars", icon:"P", color:"#00A7CB", status:"untested", link:"https://github.com/phuryn/pm-skills", tags:["产品全生命周期","100+ 技能"], desc:"覆盖 AI 产品经理完整工作流：Discovery（机会解决方案树、假设验证）→ Strategy（战略画布、商业模型、定价策略）→ Execution（8 段式 PRD、OKR、路线图、Sprint 规划、干系人管理）→ Launch → Growth（北极星指标）。共 100+ 技能、42 个工作流、9 个插件。"},
-  {name:"GitHub Awesome Copilot Skills", by:"GitHub 社区 . 社区驱动", icon:"A", color:"#24292F", status:"untested", link:"https://github.com/github/awesome-copilot", tags:["PRD+需求+架构+开发","100+ 资源"], desc:"企业级产品与工程协作 Skill 集合，包含 PRD 生成（完整 8 段式 PRD 模板 + 用户故事 + 验收条件）、需求分析（用户画像、市场细分、TAM/SAM/SOM 估算）、架构设计（ADR 记录、系统设计）、开发辅助（测试规划、代码审查、实现计划生成）。社区贡献 100+ 指令/Agent/Skill。"},
-  {name:"Superpowers", by:"Jesse Vincent . 174K+ Stars", icon:"S", color:"#6B46C1", status:"untested", link:"https://github.com/obra/superpowers", tags:["TDD 强制执行","7 阶段闭环"], desc:"Agent 软件开发流程框架，7 阶段闭环流水线：需求澄清（Socratic 设计精化）→ 计划编制（详细实现计划）→ 批处理执行（子 Agent 并行、Git Worktree）→ 代码审查（两阶段审查）→ 测试驱动（强制 RED-GREEN-REFACTOR 红绿重构循环）→ 验证（完成前确认）→ 技能沉淀。TDD + 多 Agent 并行 + 强制工作流。"}
+  {name:"PM Skills Marketplace", by:"phuryn / maorkuriel | 22K+ Stars", icon:"P", color:"#00A7CB", status:"untested", link:"https://github.com/phuryn/pm-skills", tags:["产品全生命周期","100+ 技能"], desc:"覆盖 AI 产品经理完整工作流：Discovery（机会解决方案树、假设验证）→ Strategy（战略画布、商业模型、定价策略）→ Execution（8 段式 PRD、OKR、路线图、Sprint 规划、干系人管理）→ Launch → Growth（北极星指标）。共 100+ 技能、42 个工作流、9 个插件。"},
+  {name:"GitHub Awesome Copilot Skills", by:"GitHub 社区 | 社区驱动", icon:"A", color:"#24292F", status:"untested", link:"https://github.com/github/awesome-copilot", tags:["PRD+需求+架构+开发","100+ 资源"], desc:"企业级产品与工程协作 Skill 集合，包含 PRD 生成（完整 8 段式 PRD 模板 + 用户故事 + 验收条件）、需求分析（用户画像、市场细分、TAM/SAM/SOM 估算）、架构设计（ADR 记录、系统设计）、开发辅助（测试规划、代码审查、实现计划生成）。社区贡献 100+ 指令/Agent/Skill。"},
+  {name:"Superpowers", by:"Jesse Vincent | 174K+ Stars", icon:"S", color:"#6B46C1", status:"untested", link:"https://github.com/obra/superpowers", tags:["TDD 强制执行","7 阶段闭环"], desc:"Agent 软件开发流程框架，7 阶段闭环流水线：需求澄清（Socratic 设计精化）→ 计划编制（详细实现计划）→ 批处理执行（子 Agent 并行、Git Worktree）→ 代码审查（两阶段审查）→ 测试驱动（强制 RED-GREEN-REFACTOR 红绿重构循环）→ 验证（完成前确认）→ 技能沉淀。TDD + 多 Agent 并行 + 强制工作流。"}
 ];
 
 var DATA_TOPICS = [
@@ -528,9 +541,9 @@ var DATA_TOPICS = [
 ];
 
 var PROTO_SKILLS = [
-  {name:"OpenUI", by:"wandb . 20K+ Stars", icon:"O", color:"#22C55E", status:"untested", link:"https://github.com/wandb/openui", tags:["AI 生成原型","实时修改"], desc:"AI 驱动 Web 界面原型生成工具。自然语言描述 → 直接生成 UI 界面，支持实时修改和迭代，输出 HTML/React 原型。适用阶段：PRD → 页面原型。"},
-  {name:"Penpot", by:"Penpot . 30K+ Stars", icon:"P", color:"#6C5CE7", status:"untested", link:"https://github.com/penpot/penpot", tags:["专业设计","类 Figma"], desc:"开源专业原型设计平台。类 Figma 的界面设计能力，支持交互流程定义、组件管理、团队评审、Design System 维护。适用阶段：原型设计 → 产品评审。"},
-  {name:"Appsmith", by:"Appsmith . 350K+ Stars", icon:"A", color:"#E53E3E", status:"untested", link:"https://github.com/appsmithorg/appsmith", tags:["低代码","可运行 MVP"], desc:"开源低代码应用构建平台。页面搭建、数据绑定、API 接入、Dashboard 和后台系统快速实现。从原型快速过渡到可运行的 MVP 版本。适用阶段：原型 → 可运行 MVP。"}
+  {name:"OpenUI", by:"wandb | 20K+ Stars", icon:"O", color:"#22C55E", status:"untested", link:"https://github.com/wandb/openui", tags:["AI 生成原型","实时修改"], desc:"AI 驱动 Web 界面原型生成工具。自然语言描述 → 直接生成 UI 界面，支持实时修改和迭代，输出 HTML/React 原型。适用阶段：PRD → 页面原型。"},
+  {name:"Penpot", by:"Penpot | 30K+ Stars", icon:"P", color:"#6C5CE7", status:"untested", link:"https://github.com/penpot/penpot", tags:["专业设计","类 Figma"], desc:"开源专业原型设计平台。类 Figma 的界面设计能力，支持交互流程定义、组件管理、团队评审、Design System 维护。适用阶段：原型设计 → 产品评审。"},
+  {name:"Appsmith", by:"Appsmith | 350K+ Stars", icon:"A", color:"#E53E3E", status:"untested", link:"https://github.com/appsmithorg/appsmith", tags:["低代码","可运行 MVP"], desc:"开源低代码应用构建平台。页面搭建、数据绑定、API 接入、Dashboard 和后台系统快速实现。从原型快速过渡到可运行的 MVP 版本。适用阶段：原型 → 可运行 MVP。"}
 ];
 
 function renderTopics() {
@@ -615,11 +628,15 @@ function renderProjects(list) {
   for (var i = 0; i < list.length; i++) {
     var p = list[i];
     var d = p.status === "deployed" ? "" : " disabled";
-    var tags = p.status === "deployed" ? '<span class="pc-tag green">[已部署]</span>' : p.status === "failed" ? '<span class="pc-tag gray">[未完成]</span>' : p.status === "untested" ? '<span class="pc-tag gray">[未验证]</span>' : '<span class="pc-tag gray">[未部署]</span>';
+    var tags = '';
+      tags += p.status === "deployed" ? '<span class="pc-tag green">[已部署]</span>' : p.status === "failed" ? '<span class="pc-tag gray">[未完成]</span>' : p.status === "untested" ? '<span class="pc-tag gray">[未验证]</span>' : '<span class="pc-tag gray">[未部署]</span>';
     for (var j = 0; j < p.tags.length; j++) tags += '<span class="pc-tag">' + p.tags[j] + '</span>';
+    var badge = p.recommended ? '<div style="position:absolute;top:12px;right:12px;background:#FFF3D6;color:#B8860B;font-size:0.72rem;font-weight:700;padding:3px 12px;border-radius:12px;box-shadow:0 2px 6px rgba(184,134,11,0.15);z-index:2;">⭐ 推荐</div>' : '';
     var foot;
     if (p.status === "deployed") {
-      foot = '<div class="pc-footer"><span>访问 ' + p.name + ' 版本</span><span class="arrow">-></span></div>';
+      var href = p.link ? 'href="' + p.link + '"' : 'href="javascript:void(0)"';
+      var retroLink = p.retro ? '<a href="retro.html?path=' + encodeURIComponent(p.retro) + '" class="retro-link" style="color:#5A4E3C;text-decoration:none;font-size:0.82rem;">📋 复盘</a>' : '';
+      foot = '<div class="pc-footer" style="display:flex;align-items:center;justify-content:space-between;"><span>' + retroLink + '</span><a ' + href + ' style="color:#00A7CB;text-decoration:none;font-weight:600;">访问 ' + p.name + ' 版本<span class="arrow">-></span></a></div>';
     } else if (p.status === "untested") {
       foot = '<div class="pc-footer" style="color:#B0A694;justify-content:center;"><span>待验证</span></div>';
     } else {
@@ -632,16 +649,16 @@ function renderProjects(list) {
         var gl = p.github.indexOf("github.com") >= 0 ? "GitHub ↗" : "访问下载 ↗";
         gh2 = '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #D6CFC0;"><a href="' + p.github + '" target="_blank" rel="noopener" style="color:#00A7CB;text-decoration:none;font-weight:600;font-size:0.72rem;">' + gl + '</a></div>';
         var hf = p.link ? 'href="' + p.link + '"' : 'href="javascript:void(0)"';
-        card = '<div class="project-card"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div>' + gh2 + '</div></div><div class="pc-body"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div><div class="pc-footer"><a ' + hf + ' style="color:#00A7CB;text-decoration:none;">访问 ' + p.name + ' 版本</a><span class="arrow">-></span></div></div>';
+        card = '<div class="project-card"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div>' + gh2 + '</div>' + badge + '</div><div class="pc-body"><div class="pc-tags">' + tags + '</div></div><div class="pc-desc">' + p.desc + '</div>' + foot + '</div>';
       } else {
         var href = p.link ? 'href="' + p.link + '"' : 'href="javascript:void(0)"';
-        card = '<a class="project-card" ' + href + '><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div></div></div><div class="pc-body"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div>' + foot + '</a>';
+        card = '<div class="project-card"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div></div>' + badge + '</div><div class="pc-body"><div class="pc-tags">' + tags + '</div></div><div class="pc-desc">' + p.desc + '</div>' + foot + '</div>';
       }
     } else if (p.status === "untested") {
       var gh = p.link ? '<div style="margin-top:6px;padding-top:6px;border-top:1px dashed #D6CFC0;"><a href="' + p.link + '" target="_blank" rel="noopener" style="color:#00A7CB;text-decoration:none;font-weight:600;font-size:0.72rem;">GitHub ↗</a></div>' : '';
-      card = '<div class="project-card' + d + '"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div>' + gh + '</div></div><div class="pc-body" style="opacity:0.55;"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div>' + foot + '</div>';
+      card = '<div class="project-card' + d + '"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div>' + gh + '</div></div><div class="pc-body" style="opacity:0.55;"><div class="pc-tags">' + tags + '</div></div><div class="pc-desc" style="opacity:0.55;">' + p.desc + '</div>' + foot + '</div>';
     } else {
-      card = '<div class="project-card' + d + '"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div></div></div><div class="pc-body" style="opacity:0.55;"><div class="pc-tags">' + tags + '</div><div class="pc-desc">' + p.desc + '</div></div>' + foot + '</div>';
+      card = '<div class="project-card' + d + '"><div class="pc-header"><div class="pc-icon" style="background:' + p.color + '">' + p.icon + '</div><div><div class="pc-name">' + p.name + '</div><div class="pc-by">' + p.by + '</div></div></div><div class="pc-body" style="opacity:0.55;"><div class="pc-tags">' + tags + '</div></div><div class="pc-desc" style="opacity:0.55;">' + p.desc + '</div>' + foot + '</div>';
     }
     g.insertAdjacentHTML("beforeend", card);
   }
