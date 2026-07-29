@@ -422,6 +422,30 @@ body {
 .project-card:hover .pc-footer { color: #2C2416; }
 .pc-footer .arrow { font-size: 1rem; }
 
+/* ===== Enterprise Ontology (企业本体) ===== */
+.eo-wrap { width: 100%; grid-column: 1 / -1; }
+.eo-intro { font-size: 0.92rem; color: #3A3020; line-height: 1.9; font-family: "PingFang SC","Microsoft YaHei",sans-serif; margin-bottom: 22px; }
+.eo-term { font-weight: 700; color: #007A93; font-size: 1.02rem; }
+.eo-flow {
+  display: grid;
+  grid-template-columns: max-content;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+}
+.eo-layer { width: 100%; max-width: 100%; display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #E6DFD3; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(44,36,22,0.04); }
+.eo-tag { flex-shrink: 0; color: #fff; font-weight: 700; font-size: 0.82rem; padding: 7px 12px; border-radius: 8px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; min-width: 78px; text-align: center; }
+.eo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.eo-chips span { font-size: 0.78rem; padding: 3px 12px; border-radius: 14px; background: #F0ECE5; color: #6B5F4E; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.eo-arrow { font-size: 1.2rem; color: #B0A694; margin: 5px 0; text-align: center; line-height: 1; }
+.eo-note { margin-top: 22px; font-size: 0.85rem; color: #6B5F4E; line-height: 1.9; padding: 0; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.eo-note strong { color: #2C2416; }
+
+@media (max-width: 768px) {
+  .eo-flow { grid-template-columns: 1fr; }
+  .eo-layer { width: auto; padding: 12px 14px; }
+}
+
 /* ===== Mobile ===== */
 @media (max-width: 768px) {
   .nav-toggle { display: block; }
@@ -457,8 +481,8 @@ body {
       <a href="#">Code Agent</a>
       <a href="#">数据聚合</a>
       <a href="#">办公 Skill</a>
-      <a href="#">PRD Skill</a>
-      <a href="#">原型 Skill</a>
+      <a href="#">研发 Skill</a>
+      <a href="#">企业本体</a>
       <a href="#">AI 笔记</a>
     </div>
   </div>
@@ -518,6 +542,8 @@ var PROJECTS = [
 ];
 
 var ALL = PROJECTS;
+
+var WORK_SUBTABS = '<button class="sub-tab active" onclick="filterProjects(\'domestic\')">国内商业 (5)</button><button class="sub-tab" onclick="filterProjects(\'foreign\')">国外商业 (3)</button><button class="sub-tab" onclick="filterProjects(\'opensource\')">开源 (3)</button>';
 
 var CODE_AGENTS = [
   {name:"Claude Code", by:"Anthropic | cc-switch -> DeepSeek", icon:"C", color:"#D97757", status:"untested", link:"", tags:["终端 Agent","SWE-bench 80.9%"], desc:"终端原生推理 Agent，Agent Teams + MCP 生态。通过 cc-switch 路由可接入 DeepSeek 等自建模型，打破模型绑定。需验证。"},
@@ -687,11 +713,37 @@ function filterProjects(cat) {
       rl.textContent = "";
       rl.innerHTML = '国外商业 Agent 详细评测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg>';
     } else {
-      rl.href = "javascript:void(0)";
+      rl.href = "https://mp.weixin.qq.com/s/jzLvpU4FPLJxKAdb3zw1jA";
       rl.textContent = "";
-      rl.innerHTML = '开源 Agent 详细评测（评测中）';
+      rl.innerHTML = '开源 Agent 详细评测 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M7 17L17 7"/><path d="M9 7h8v8"/></svg>';
     }
   }
+}
+
+function filterSkill(cat) {
+  localStorage.setItem("skill_sub_tab", cat);
+  renderProjects(cat === "proto" ? PROTO_SKILLS : PRD_SKILLS);
+  var tabs = document.querySelectorAll(".sub-tab");
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+  var idx = cat === "proto" ? 1 : 0;
+  if (tabs[idx]) tabs[idx].classList.add("active");
+}
+
+function renderEnterpriseOntology() {
+  var g = document.getElementById("projectGrid");
+  if (!g) return;
+  g.innerHTML =
+    '<div class="eo-wrap">' +
+      '<p class="eo-intro"><span class="eo-term">企业本体（Enterprise Ontology）</span>的本质，是把企业的人、事、物、流程、规则和经验，从分散的数据和系统中抽象成 AI 可理解的业务模型，让 AI 从"会回答问题"走向"能理解企业并执行任务"。</p>' +
+      '<div class="eo-flow">' +
+        '<div class="eo-layer"><div class="eo-tag" style="background:#C5B8A8;">业务世界</div><div class="eo-chips"><span>用户</span><span>设备</span><span>场站</span><span>订单</span><span>风险</span><span>流程</span></div></div>' +
+        '<div class="eo-arrow">↓</div>' +
+        '<div class="eo-layer"><div class="eo-tag" style="background:#00A7CB;">企业本体</div><div class="eo-chips"><span>对象</span><span>关系</span><span>规则</span><span>能力</span></div></div>' +
+        '<div class="eo-arrow">↓</div>' +
+        '<div class="eo-layer"><div class="eo-tag" style="background:#5A4A3A;">AI Agent</div><div class="eo-chips"><span>理解</span><span>推理</span><span>决策</span><span>执行</span></div></div>' +
+      '</div>' +
+      '<p class="eo-note">企业本体即企业数字世界的"语义层"——向上承接业务世界，向下驱动 AI Agent，让 AI 从"会回答"走向"能理解企业并执行任务"。<br><br>当前状态：<strong>待研究</strong></p>' +
+    '</div>';
 }
 
 function showSection(id) {
@@ -735,6 +787,7 @@ for (var i = 0; i < navLinks.length; i++) {
       document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
       document.getElementById("agentSection").querySelector(".branch-header h1").textContent = "Work Agent 能力";
       document.getElementById("agentSection").querySelector(".branch-header p").textContent = "基于同一份 PRD、不同 AI Work Agent 独立搭建的城市分时电价观察站 MVP 对比。";
+      document.getElementById("agentSection").querySelector(".sub-tabs").innerHTML = WORK_SUBTABS;
       document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "flex";
       document.getElementById("agentSection").querySelector(".branch-header p").style.display = "block";
       document.getElementById("agentSection").querySelector(".review-link").style.display = "block";
@@ -775,27 +828,31 @@ for (var i = 0; i < navLinks.length; i++) {
       renderDemo("pptx");
       var cs = document.getElementById("comingSoon");
       if (cs) cs.style.display = "none";
-    } else if (name === "PRD Skill") {
+    } else if (name === "研发 Skill") {
       showSection("agentSection");
-      var psH = document.getElementById("agentSection").querySelector(".branch-header h1");
-      psH.innerHTML = 'PRD Skill 能力 <span class="status-pill">待验证</span>';
+      document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
+      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '研发 Skill 能力 <span class="status-pill">待验证</span>';
+      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+      document.getElementById("demoArea").style.display = "none";
+      var rst = document.getElementById("agentSection").querySelector(".sub-tabs");
+      rst.innerHTML = '<button class="sub-tab active" onclick="filterSkill(\'prd\')">PRD Skill</button><button class="sub-tab" onclick="filterSkill(\'proto\')">原型 Skill</button>';
+      rst.style.display = "flex";
+      var cs = document.getElementById("comingSoon");
+      if (cs) cs.style.display = "none";
+      var sks = localStorage.getItem("skill_sub_tab");
+      filterSkill(sks === "proto" ? "proto" : "prd");
+    } else if (name === "企业本体") {
+      showSection("agentSection");
+      document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
+      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '企业本体 <span class="status-pill">待研究</span>';
       document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
       document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
       document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
       document.getElementById("demoArea").style.display = "none";
       var cs = document.getElementById("comingSoon");
       if (cs) cs.style.display = "none";
-      renderProjects(PRD_SKILLS);
-    } else if (name === "原型 Skill") {
-      showSection("agentSection");
-      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '原型 Skill 能力 <span class="status-pill">待验证</span>';
-      document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
-      document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
-      document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
-      document.getElementById("demoArea").style.display = "none";
-      var cs = document.getElementById("comingSoon");
-      if (cs) cs.style.display = "none";
-      renderProjects(PROTO_SKILLS);
+      renderEnterpriseOntology();
     } else if (name === "AI 笔记") {
       showSection("agentSection");
       document.getElementById("agentSection").querySelector(".branch-header").style.display = "none";
@@ -830,6 +887,7 @@ for (var i = 0; i < navLinks.length; i++) {
 }
 
 var sn = localStorage.getItem("nav_tab");
+if (sn === "PRD Skill" || sn === "原型 Skill") { sn = "研发 Skill"; localStorage.setItem("nav_tab", sn); }
 if (sn === "Work Agent") {
   showSection("agentSection");
   document.querySelector(".nav-brand").classList.remove("active");
@@ -872,28 +930,33 @@ if (sn === "Work Agent") {
   document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
   document.getElementById("demoArea").style.display = "block";
   renderDemo("pptx");
-} else if (sn === "PRD Skill") {
+} else if (sn === "研发 Skill") {
   showSection("agentSection");
   document.querySelector(".nav-brand").classList.remove("active");
   var ls = document.querySelectorAll(".nav-links a");
-  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "PRD Skill") ls[i].classList.add("active"); }
-  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = 'PRD Skill 能力 <span class="status-pill">待验证</span>';
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "研发 Skill") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '研发 Skill 能力 <span class="status-pill">待验证</span>';
+  document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
+  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
+  document.getElementById("demoArea").style.display = "none";
+  var rst = document.getElementById("agentSection").querySelector(".sub-tabs");
+  rst.innerHTML = '<button class="sub-tab active" onclick="filterSkill(\'prd\')">PRD Skill</button><button class="sub-tab" onclick="filterSkill(\'proto\')">原型 Skill</button>';
+  rst.style.display = "flex";
+  var sks = localStorage.getItem("skill_sub_tab");
+  filterSkill(sks === "proto" ? "proto" : "prd");
+} else if (sn === "企业本体") {
+  showSection("agentSection");
+  document.querySelector(".nav-brand").classList.remove("active");
+  var ls = document.querySelectorAll(".nav-links a");
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "企业本体") ls[i].classList.add("active"); }
+  document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '企业本体 <span class="status-pill">待研究</span>';
   document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
   document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
   document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
   document.getElementById("demoArea").style.display = "none";
-  renderProjects(PRD_SKILLS);
-} else if (sn === "原型 Skill") {
-  showSection("agentSection");
-  document.querySelector(".nav-brand").classList.remove("active");
-  var ls = document.querySelectorAll(".nav-links a");
-  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "原型 Skill") ls[i].classList.add("active"); }
-  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '原型 Skill 能力 <span class="status-pill">待验证</span>';
-  document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
-  document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
-  document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
-  document.getElementById("demoArea").style.display = "none";
-  renderProjects(PROTO_SKILLS);
+  renderEnterpriseOntology();
 } else if (sn === "AI 笔记") {
   showSection("agentSection");
   document.querySelector(".nav-brand").classList.remove("active");
