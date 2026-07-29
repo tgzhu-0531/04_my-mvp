@@ -342,7 +342,11 @@ body {
 .demo-area { max-width: 860px; margin: 0 auto; }
 .demo-area .demo-gif { width: 100%; max-width: 800px; height: auto; border-radius: 8px; box-shadow: 0 2px 12px rgba(44,36,22,0.06); display: block; margin: 0 auto; }
 .demo-area .demo-caption { text-align: center; font-size: 0.78rem; color: #A69B8C; margin-top: 10px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
-.demo-area .demo-desc { margin-top: 24px; font-size: 0.85rem; color: #6B5F4E; line-height: 1.8; background: #fff; border: 1px solid #EDE8DF; border-radius: 8px; padding: 20px 24px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.demo-area .demo-desc { margin-top: 24px; font-size: 0.85rem; color: #6B5F4E; line-height: 1.8; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.demo-area .skill-install { display: flex; flex-direction: column; gap: 2px; width: fit-content; margin-top: 18px; padding: 12px 18px; background: #E6F7FB; border: 1px solid #BDEAF4; border-radius: 10px; text-decoration: none; transition: background .2s, border-color .2s; }
+.demo-area .skill-install:hover { background: #D2F0F8; border-color: #00A7CB; }
+.demo-area .skill-install .si-main { font-size: 0.95rem; font-weight: 700; color: #007A93; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.demo-area .skill-install .si-sub { font-size: 0.75rem; color: #5A8A98; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
 
 /* ===== Article list (AI随笔) ===== */
 .article-list { max-width: 780px; grid-column: 1 / -1; justify-self: center; width: 100%; min-height: 300px; }
@@ -595,9 +599,13 @@ function renderDemo(type) {
       '<img src="assets/doPPTx.gif" alt="PPT 自动生成演示" class="demo-gif">' +
       '<p class="demo-caption">PPT 自动生成演示</p>' +
       '<div class="demo-desc"><strong>关于本 Skill</strong><br><br>' +
-      "支持三种模板风格：Teld 风（品牌主色 Teal）、商务风（深蓝白底）、文质风（暖纸温和系）。" +
-      "从 IMA 知识库、公众号链接、本地文件或粘贴内容中筛选指定资料，" +
-      "根据内容与听众角色，通过逐页交互确认生成完整可编辑 PPTX。</div>";
+      "支持 <strong>4 种视觉风格</strong>：企业风（深蓝渐变）· 锋芒风（纯黑高对比）· 文质风（奶油纸暖色）· 商务风（白底深字）。" +
+      "从 IMA 知识库、链接、本地文件或粘贴内容中筛选指定资料，" +
+      "根据内容与听众角色，通过逐页交互确认生成完整可编辑 PPTX。</div>" +
+      '<a class="skill-install" href="https://github.com/tgzhu-0531/01_my-skills/tree/main/tgzhu-content-2pptx" target="_blank" rel="noopener">' +
+      '<span class="si-main">Skill 安装地址 ↗</span>' +
+      '<span class="si-sub">tgzhu-content-2pptx</span>' +
+      '</a>';
   }
 }
 
