@@ -426,28 +426,22 @@ body {
 .project-card:hover .pc-footer { color: #2C2416; }
 .pc-footer .arrow { font-size: 1rem; }
 
-/* ===== Enterprise Ontology (企业本体) ===== */
+/* ===== 运营型本体 (Operation Ontology) ===== */
 .eo-wrap { width: 100%; grid-column: 1 / -1; }
 .eo-intro { font-size: 0.92rem; color: #3A3020; line-height: 1.9; font-family: "PingFang SC","Microsoft YaHei",sans-serif; margin-bottom: 22px; }
-.eo-term { font-weight: 700; color: #007A93; font-size: 1.02rem; }
-.eo-flow {
-  display: grid;
-  grid-template-columns: max-content;
-  justify-content: center;
-  align-items: center;
-  gap: 0;
-}
-.eo-layer { width: 100%; max-width: 100%; display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid #E6DFD3; border-radius: 12px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(44,36,22,0.04); }
-.eo-tag { flex-shrink: 0; color: #fff; font-weight: 700; font-size: 0.82rem; padding: 7px 12px; border-radius: 8px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; min-width: 78px; text-align: center; }
-.eo-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.eo-chips span { font-size: 0.78rem; padding: 3px 12px; border-radius: 14px; background: #F0ECE5; color: #6B5F4E; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
-.eo-arrow { font-size: 1.2rem; color: #B0A694; margin: 5px 0; text-align: center; line-height: 1; }
-.eo-note { margin-top: 22px; font-size: 0.85rem; color: #6B5F4E; line-height: 1.9; padding: 0; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
-.eo-note strong { color: #2C2416; }
+.eo-intro strong { color: #007A93; font-weight: 700; }
+.eo-cap-lead { font-size: 0.92rem; color: #3A3020; line-height: 1.9; font-family: "PingFang SC","Microsoft YaHei",sans-serif; margin: 0 0 16px; }
+.eo-cap-lead b { color: #007A93; }
+.eo-seq { color: #007A93; font-weight: 700; }
+.eo-cap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+.eo-cap-item { background: #fff; border: 1px solid #E6DFD3; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 8px rgba(44,36,22,0.04); }
+.eo-cap-item .t { font-size: 0.98rem; font-weight: 700; color: #2C2416; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.eo-cap-item .e { font-size: 0.8rem; color: #007A93; font-family: "PingFang SC","Microsoft YaHei",sans-serif; margin-top: 2px; }
+.eo-pre-cap { font-size: 0.85rem; font-weight: 700; color: #2C2416; margin-bottom: 10px; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+.eo-pre { background: #FBF9F5; border: 1px solid #E6DFD3; border-radius: 10px; padding: 18px 20px; overflow-x: auto; font-family: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace; font-size: 0.78rem; line-height: 1.45; color: #3A3020; white-space: pre; }
 
 @media (max-width: 768px) {
-  .eo-flow { grid-template-columns: 1fr; }
-  .eo-layer { width: auto; padding: 12px 14px; }
+  .eo-cap { grid-template-columns: 1fr; }
 }
 
 /* ===== Mobile ===== */
@@ -486,7 +480,7 @@ body {
       <a href="#">数据聚合</a>
       <a href="#">办公 Skill</a>
       <a href="#">研发 Skill</a>
-      <a href="#">企业本体</a>
+      <a href="#">运营型本体</a>
       <a href="#">AI 笔记</a>
     </div>
   </div>
@@ -740,17 +734,39 @@ function filterSkill(cat) {
 function renderEnterpriseOntology() {
   var g = document.getElementById("projectGrid");
   if (!g) return;
+  var arch = [
+    "                    OpenWorker",
+    "               Agent Harness / 任务入口",
+    "                         │",
+    "       ┌─────────────────┼─────────────────┐",
+    "       │                 │                 │",
+    "  语义与上下文       判断与治理        业务执行",
+    "       │                 │                 │",
+    "Ontology Playground   Drools / DMN      MCP Action",
+    "Ossie                 Keycloak + OPA        │",
+    "OWL / SHACL                             Camel + Temporal",
+    "Jena / Fuseki",
+    "       │                 │                 │",
+    "       └─────────────────┼─────────────────┘",
+    "                         │",
+    "             现有数据平台与业务系统",
+    "",
+    "支撑能力：",
+    "模型服务：vLLM",
+    "文档知识：Haystack / RAG",
+    "可观测：OpenTelemetry + Langfuse"
+  ].join("\n");
   g.innerHTML =
     '<div class="eo-wrap">' +
-      '<p class="eo-intro"><span class="eo-term">企业本体（Enterprise Ontology）</span>的本质，是把企业的人、事、物、流程、规则和经验，从分散的数据和系统中抽象成 AI 可理解的业务模型，让 AI 从"会回答问题"走向"能理解企业并执行任务"。</p>' +
-      '<div class="eo-flow">' +
-        '<div class="eo-layer"><div class="eo-tag" style="background:#C5B8A8;">业务世界</div><div class="eo-chips"><span>用户</span><span>设备</span><span>场站</span><span>订单</span><span>风险</span><span>流程</span></div></div>' +
-        '<div class="eo-arrow">↓</div>' +
-        '<div class="eo-layer"><div class="eo-tag" style="background:#00A7CB;">企业本体</div><div class="eo-chips"><span>对象</span><span>关系</span><span>规则</span><span>能力</span></div></div>' +
-        '<div class="eo-arrow">↓</div>' +
-        '<div class="eo-layer"><div class="eo-tag" style="background:#5A4A3A;">AI Agent</div><div class="eo-chips"><span>理解</span><span>推理</span><span>决策</span><span>执行</span></div></div>' +
+      '<p class="eo-intro"><span class="eo-seq">1、</span>2026年8月1日，<strong>GB/T 48000.3—2026《标准数字化 第3部分：本体建模要求》</strong>正式实施。它释放出一个明确信号：本体正在从知识工程中的专业概念，走向规范化、工程化应用。</p>' +
+      '<p class="eo-cap-lead"><b>2、</b>我的理解是，企业 AI 应用需要三类核心能力：</p>' +
+      '<div class="eo-cap">' +
+        '<div class="eo-cap-item"><div class="t">聪明的大脑</div><div class="e">LLM</div></div>' +
+        '<div class="eo-cap-item"><div class="t">企业地图</div><div class="e">Ontology</div></div>' +
+        '<div class="eo-cap-item"><div class="t">运行框架</div><div class="e">Harness</div></div>' +
       '</div>' +
-      '<p class="eo-note">企业本体即企业数字世界的"语义层"——向上承接业务世界，向下驱动 AI Agent，让 AI 从"会回答"走向"能理解企业并执行任务"。<br><br>当前状态：<strong>待研究</strong></p>' +
+      '<div class="eo-pre-cap"><span class="eo-seq">3、</span>基于 Ontology 开源技术选型架构</div>' +
+      '<pre class="eo-pre">' + arch + '</pre>' +
     '</div>';
 }
 
@@ -792,6 +808,7 @@ for (var i = 0; i < navLinks.length; i++) {
     localStorage.setItem("nav_tab",name);
     if (name === "Work Agent") {
       showSection("agentSection");
+      document.getElementById("demoArea").style.display = "none";
       document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
       document.getElementById("agentSection").querySelector(".branch-header h1").textContent = "Work Agent 能力";
       document.getElementById("agentSection").querySelector(".branch-header p").textContent = "基于同一份 PRD、不同 AI Work Agent 独立搭建的城市分时电价观察站 MVP 对比。";
@@ -805,6 +822,7 @@ for (var i = 0; i < navLinks.length; i++) {
       filterProjects(ss === "foreign" ? "foreign" : ss === "opensource" ? "opensource" : "domestic");
     } else if (name === "Code Agent") {
       showSection("agentSection");
+      document.getElementById("demoArea").style.display = "none";
       var caH = document.getElementById("agentSection").querySelector(".branch-header h1");
       caH.innerHTML = 'Code Agent 能力 <span class="status-pill">待验证</span>';
       document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
@@ -850,10 +868,10 @@ for (var i = 0; i < navLinks.length; i++) {
       if (cs) cs.style.display = "none";
       var sks = localStorage.getItem("skill_sub_tab");
       filterSkill(sks === "proto" ? "proto" : "prd");
-    } else if (name === "企业本体") {
+    } else if (name === "运营型本体") {
       showSection("agentSection");
       document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
-      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '企业本体 <span class="status-pill">待研究</span>';
+      document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '运营型本体 <span class="status-pill">研究中</span>';
       document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
       document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
       document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
@@ -898,6 +916,7 @@ var sn = localStorage.getItem("nav_tab");
 if (sn === "PRD Skill" || sn === "原型 Skill") { sn = "研发 Skill"; localStorage.setItem("nav_tab", sn); }
 if (sn === "Work Agent") {
   showSection("agentSection");
+  document.getElementById("demoArea").style.display = "none";
   document.querySelector(".nav-brand").classList.remove("active");
   document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
   var ls = document.querySelectorAll(".nav-links a");
@@ -906,6 +925,7 @@ if (sn === "Work Agent") {
   filterProjects(ss === "foreign" ? "foreign" : ss === "opensource" ? "opensource" : "domestic");
 } else if (sn === "Code Agent") {
   showSection("agentSection");
+  document.getElementById("demoArea").style.display = "none";
   document.querySelector(".nav-brand").classList.remove("active");
   var ls = document.querySelectorAll(".nav-links a");
   for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "Code Agent") ls[i].classList.add("active"); }
@@ -953,13 +973,13 @@ if (sn === "Work Agent") {
   rst.style.display = "flex";
   var sks = localStorage.getItem("skill_sub_tab");
   filterSkill(sks === "proto" ? "proto" : "prd");
-} else if (sn === "企业本体") {
+} else if (sn === "运营型本体") {
   showSection("agentSection");
   document.querySelector(".nav-brand").classList.remove("active");
   var ls = document.querySelectorAll(".nav-links a");
-  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "企业本体") ls[i].classList.add("active"); }
+  for (var i = 0; i < ls.length; i++) { if (ls[i].textContent.trim() === "运营型本体") ls[i].classList.add("active"); }
   document.getElementById("agentSection").querySelector(".branch-header").style.display = "block";
-  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '企业本体 <span class="status-pill">待研究</span>';
+  document.getElementById("agentSection").querySelector(".branch-header h1").innerHTML = '运营型本体 <span class="status-pill">研究中</span>';
   document.getElementById("agentSection").querySelector(".branch-header p").style.display = "none";
   document.getElementById("agentSection").querySelector(".sub-tabs").style.display = "none";
   document.getElementById("agentSection").querySelector(".review-link").style.display = "none";
